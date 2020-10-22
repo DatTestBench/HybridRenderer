@@ -55,43 +55,37 @@ Elite::FVector3 Elite::Texture::SampleV(const FVector2& uv) const
 	remappedUV.y = Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
 	SDL_Color color;
 
-	SDL_GetRGB(GetPixel(m_pSurface, int(remappedUV.x), int(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b);
+	SDL_GetRGB(GetPixel(m_pSurface, static_cast<int32_t>(remappedUV.x), static_cast<int32_t>(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b);
 
 	return FVector3(color.r, color.g, color.b);
 }
-float Elite::Texture::SampleF(const FVector2& uv, int component) const
+float Elite::Texture::SampleF(const FVector2& uv, const int32_t component) const
 {
 	switch (component)
 	{
 	case 0:
 		return Sample(uv).r;
-		break;
-
 	case 1:
 		return Sample(uv).g;
-		break;
 	case 2:
 		return Sample(uv).b;
-		break;
 	default:
 		return Sample(uv).r;
-		break;
 	}
 }
 
 // GetPixel function adapted from http://sdl.beuc.net/sdl.wiki/Pixel_Access
-uint32_t Elite::Texture::GetPixel(SDL_Surface* surface, uint64_t x, uint64_t y) const
+uint32_t Elite::Texture::GetPixel(SDL_Surface* surface, const uint64_t x, const uint64_t y)
 {
-	int bpp = surface->format->BytesPerPixel;
+	const int32_t bpp = surface->format->BytesPerPixel;
 
-	uint8_t* p = (uint8_t*)surface->pixels + y * surface->pitch + x * bpp;
+	auto* p = static_cast<uint8_t*>(surface->pixels) + y * surface->pitch + x * bpp;
 
 	switch (bpp) {
 	case 1:
 		return *p;
-		break;
 	case 2:
-		return *(uint16_t*)p;
+		return *reinterpret_cast<uint16_t*>(p);
 		break;
 	case 3:
 		if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
@@ -100,8 +94,7 @@ uint32_t Elite::Texture::GetPixel(SDL_Surface* surface, uint64_t x, uint64_t y) 
 			return p[0] | p[1] << 8 | p[2] << 16;
 		break;
 	case 4:
-		return *(uint32_t*)p;
-		break;
+		return *reinterpret_cast<uint32_t*>(p);
 	default:
 		return 0;
 	}
@@ -131,12 +124,12 @@ void Elite::Texture::LoadTexture(ID3D11Device* pDevice, SDL_Surface* pSurface)
 
 	HRESULT hr = pDevice->CreateTexture2D(&desc, &initData, &m_pTexture);
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc{};
-	SRVDesc.Format = desc.Format;
-	SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	SRVDesc.Texture2D.MipLevels = 1;
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Format = desc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
 
-	hr = pDevice->CreateShaderResourceView(m_pTexture, &SRVDesc, &m_pTextureResourceView);
+	hr = pDevice->CreateShaderResourceView(m_pTexture, &srvDesc, &m_pTextureResourceView);
 }
 
 #pragma endregion

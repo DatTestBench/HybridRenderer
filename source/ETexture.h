@@ -33,7 +33,7 @@ namespace Elite
 			/*Software*/
 			SDL_Surface* m_pSurface;
 
-			uint32_t GetPixel(SDL_Surface* surface, uint64_t x, uint64_t y) const;
+			static uint32_t GetPixel(SDL_Surface* surface, uint64_t x, uint64_t y);
 			
 			/*D3D*/
 			ID3D11Texture2D* m_pTexture;

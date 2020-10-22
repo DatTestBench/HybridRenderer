@@ -12,11 +12,11 @@
 
 namespace Elite
 {
-	class Timer
+	class Timer final
 	{
 	public:
 		Timer();
-		virtual ~Timer() = default;
+		~Timer() = default;
 
 		Timer(const Timer&) = delete;
 		Timer(Timer&&) noexcept = delete;
@@ -28,10 +28,10 @@ namespace Elite
 		void Update();
 		void Stop();
 
-		uint32_t GetFPS() const { return m_FPS; };
-		float GetElapsed() const { return m_ElapsedTime; };
-		float GetTotal() const { return m_TotalTime; };
-		bool IsRunning() const { return !m_IsStopped; };
+		uint32_t GetFPS() const { return m_FPS; }
+		float GetElapsed() const { return m_ElapsedTime; }
+		float GetTotal() const { return m_TotalTime; }
+		bool IsRunning() const { return !m_IsStopped; }
 
 	private:
 		uint64_t m_BaseTime;

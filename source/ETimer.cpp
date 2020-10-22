@@ -14,7 +14,7 @@ Elite::Timer::Timer()
 
 	, m_TotalTime{}
 	, m_ElapsedTime{}
-	, m_SecondsPerCount{ 1.0f / (float)SDL_GetPerformanceFrequency() }
+	, m_SecondsPerCount{ 1.0f / static_cast<float>(SDL_GetPerformanceFrequency()) }
 	, m_ElapsedUpperBound{ 0.03f }
 	, m_FPSTimer{}
 
@@ -25,7 +25,7 @@ Elite::Timer::Timer()
 
 void Elite::Timer::Reset()
 {
-	uint64_t currentTime{ SDL_GetPerformanceCounter() };
+	const auto currentTime= SDL_GetPerformanceCounter();
 
 	m_BaseTime = currentTime;
 	m_PreviousTime = currentTime;
@@ -37,11 +37,11 @@ void Elite::Timer::Reset()
 
 void Elite::Timer::Start()
 {
-	uint64_t startTime{ SDL_GetPerformanceCounter() };
+	const auto startTime = SDL_GetPerformanceCounter();
 
 	if (m_IsStopped)
 	{
-		m_PausedTime += (startTime - m_StopTime);
+		m_PausedTime += startTime - m_StopTime;
 
 		m_PreviousTime = startTime;
 		m_StopTime = 0;
@@ -55,14 +55,14 @@ void Elite::Timer::Update()
 	{
 		m_FPS = 0;
 		m_ElapsedTime = 0.0f;
-		m_TotalTime = (float)(((m_StopTime - m_PausedTime) - m_BaseTime) * m_BaseTime);
+		m_TotalTime = static_cast<float>(((m_StopTime - m_PausedTime) - m_BaseTime) * m_BaseTime);
 		return;
 	}
 
-	uint64_t currentTime = SDL_GetPerformanceCounter();
+	const auto currentTime = SDL_GetPerformanceCounter();
 	m_CurrentTime = currentTime;
 
-	m_ElapsedTime = (float)((m_CurrentTime - m_PreviousTime) * m_SecondsPerCount);
+	m_ElapsedTime = static_cast<float>((m_CurrentTime - m_PreviousTime) * m_SecondsPerCount);
 	m_PreviousTime = m_CurrentTime;
 
 	if (m_ElapsedTime < 0.0f)
@@ -73,7 +73,7 @@ void Elite::Timer::Update()
 		m_ElapsedTime = m_ElapsedUpperBound;
 	}
 
-	m_TotalTime = (float)(((m_CurrentTime - m_PausedTime) - m_BaseTime) * m_SecondsPerCount);
+	m_TotalTime = static_cast<float>(((m_CurrentTime - m_PausedTime) - m_BaseTime) * m_SecondsPerCount);
 
 	//FPS LOGIC
 	m_FPSTimer += m_ElapsedTime;
@@ -90,7 +90,7 @@ void Elite::Timer::Stop()
 {
 	if (!m_IsStopped)
 	{
-		uint64_t currentTime{ SDL_GetPerformanceCounter() };
+		const auto currentTime= SDL_GetPerformanceCounter();
 
 		m_StopTime = currentTime;
 		m_IsStopped = true;

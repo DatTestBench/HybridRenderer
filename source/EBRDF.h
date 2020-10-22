@@ -9,10 +9,10 @@ namespace Elite
 {
 	namespace BRDF
 	{
-		inline RGBColor Phong(const RGBColor& specularColor, float phongExponent, const FVector3& lightDirection, const FVector3& viewDirection, const FVector3& normal)
+		inline RGBColor Phong(const RGBColor& specularColor, const float phongExponent, const FVector3& lightDirection, const FVector3& viewDirection, const FVector3& normal)
 		{
-			FVector3 reflect = -lightDirection + 2 * Dot(normal, lightDirection) * normal;
-			float cosineAngle = Dot(reflect, viewDirection);
+			const auto reflect = -lightDirection + 2 * Dot(normal, lightDirection) * normal;
+			const auto cosineAngle = Dot(reflect, viewDirection);
 			if (cosineAngle > 0.f)
 				return specularColor * powf(cosineAngle, phongExponent);
 			else

@@ -8,7 +8,7 @@ namespace Elite
 {
 	struct VertexInput
 	{
-		//Datamembers
+		//Data-members
 		FPoint3 pos = {};
 		FVector2 uv = {};
 		FVector3 normal = {};
@@ -26,7 +26,7 @@ namespace Elite
 
 	struct VertexOutput
 	{
-		//Datamembers
+		//Data-members
 		FPoint4 pos = {};
 		FPoint3 worldPos = {};
 		FVector2 uv = {};
@@ -51,7 +51,7 @@ namespace Elite
 
 	};
 
-	static VertexOutput Interpolate(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, float w0, float w1, float w2, float lerpDepth)
+	static VertexOutput Interpolate(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const float w0, const float w1, const float w2, const float lerpDepth)
 	{
 		VertexOutput vReturn{};
 

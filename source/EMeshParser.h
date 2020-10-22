@@ -42,11 +42,11 @@ namespace Elite
 				}
 
 				idx = 0;
-				const std::regex tokencheck("^([^\\s]*)");
+				const std::regex tokenCheck("^([^\\s]*)");
 				for (auto& i : vInput)
 				{
 					std::smatch match;
-					bool searchMatch = regex_search(i, match, tokencheck);
+					bool searchMatch = regex_search(i, match, tokenCheck);
 					auto search = m_ParseFunctions.find(match[1]);
 					if (search != m_ParseFunctions.end() && searchMatch)
 						m_ParseFunctions.at(std::string(match[1]))(i);
@@ -72,24 +72,24 @@ namespace Elite
 			{
 				for (uint64_t i = 0; i < m_IndexBuffer.size(); i += 3)
 				{
-					uint32_t index0 = m_IndexBuffer[i];
-					uint32_t index1 = m_IndexBuffer[i + 1];
-					uint32_t index2 = m_IndexBuffer[i + 2];
+					auto index0 = m_IndexBuffer[i];
+					auto index1 = m_IndexBuffer[i + 1];
+					auto index2 = m_IndexBuffer[i + 2];
 
-					const FPoint3& p0 = m_VertexBuffer[index0].pos;
-					const FPoint3& p1 = m_VertexBuffer[index1].pos;
-					const FPoint3& p2 = m_VertexBuffer[index2].pos;
-					const FVector2& uv0 = m_VertexBuffer[index0].uv;
-					const FVector2& uv1 = m_VertexBuffer[index1].uv;
-					const FVector2& uv2 = m_VertexBuffer[index2].uv;
+					const auto& p0 = m_VertexBuffer[index0].pos;
+					const auto& p1 = m_VertexBuffer[index1].pos;
+					const auto& p2 = m_VertexBuffer[index2].pos;
+					const auto& uv0 = m_VertexBuffer[index0].uv;
+					const auto& uv1 = m_VertexBuffer[index1].uv;
+					const auto& uv2 = m_VertexBuffer[index2].uv;
 
-					const FVector3 edge0 = p1 - p0;
-					const FVector3 edge1 = p2 - p0;
-					const FVector2 diffX = FVector2(uv1.x - uv0.x, uv2.x - uv0.x);
-					const FVector2 diffY = FVector2(uv1.y - uv0.y, uv2.y - uv0.y);
-					float r = 1.f / Cross(diffX, diffY);
+					const auto edge0 = p1 - p0;
+					const auto edge1 = p2 - p0;
+					const auto diffX = FVector2(uv1.x - uv0.x, uv2.x - uv0.x);
+					const auto diffY = FVector2(uv1.y - uv0.y, uv2.y - uv0.y);
+					auto r = 1.f / Cross(diffX, diffY);
 
-					FVector3 tangent = (edge0 * diffY.y - edge1 * diffY.x) * r;
+					auto tangent = (edge0 * diffY.y - edge1 * diffY.x) * r;
 					m_VertexBuffer[index0].tangent += tangent;
 					m_VertexBuffer[index1].tangent += tangent;
 					m_VertexBuffer[index2].tangent += tangent;
@@ -103,17 +103,14 @@ namespace Elite
 			{
 				uint32_t currentIndex{};
 				uint32_t findIndex{};
-				auto findResult = std::find_if(m_VertexBuffer.begin(), m_VertexBuffer.end(), [&, this](const VertexInput& vertex) {
+				const auto findResult = std::find_if(m_VertexBuffer.begin(), m_VertexBuffer.end(), [&, this](const VertexInput& vertex) {
 					currentIndex++;
 					if (vertex.pos == pos && vertex.uv == uv && vertex.normal == normal)
 					{
 						findIndex = currentIndex - 1;
 						return true;
 					}
-					else
-					{
-						return false;
-					}
+					return false;
 					});
 				if (findResult != m_VertexBuffer.end())
 				{
@@ -150,7 +147,7 @@ namespace Elite
 				};
 				m_ParseFunctions["v"] = [this](const std::string& string)
 				{
-					std::regex regex("([-e\\d.]+) ([-e\\d.]+) ([-e\\d.]+)"); //Slimmed down regex, may not have 100% format coverage
+					const std::regex regex("([-e\\d.]+) ([-e\\d.]+) ([-e\\d.]+)"); //Slimmed down regex, may not have 100% format coverage
 					std::smatch match;
 					regex_search(string, match, regex);
 					// Adding - to the z, because DirectX is left handed!
@@ -158,7 +155,7 @@ namespace Elite
 				};
 				m_ParseFunctions["vt"] = [this](const std::string& string)
 				{
-					std::regex regex("([-e\\d.]+) ([-e\\d.]+)"); //Slimmed down regex, may not have 100% format coverage
+					const std::regex regex("([-e\\d.]+) ([-e\\d.]+)"); //Slimmed down regex, may not have 100% format coverage
 					std::smatch match;
 					regex_search(string, match, regex);
 
@@ -166,7 +163,7 @@ namespace Elite
 				};
 				m_ParseFunctions["vn"] = [this](const std::string& string)
 				{
-					std::regex regex("([-e\\d.]+) ([-e\\d.]+) ([-e\\d.]+)"); //Slimmed down regex, may not have 100% format coverage
+					const std::regex regex("([-e\\d.]+) ([-e\\d.]+) ([-e\\d.]+)"); //Slimmed down regex, may not have 100% format coverage
 					std::smatch match;
 					regex_search(string, match, regex);
 
@@ -179,7 +176,7 @@ namespace Elite
 				};
 				m_ParseFunctions["f"] = [this](const std::string& string)
 				{
-					std::regex regex("(\\d*)\\/(\\d*)\\/(\\d*) (\\d*)\\/(\\d*)\\/(\\d*) (\\d*)\\/(\\d*)\\/(\\d*)"); //Slimmed down regex, may not have 100% format coverage
+					const std::regex regex("(\\d*)\\/(\\d*)\\/(\\d*) (\\d*)\\/(\\d*)\\/(\\d*) (\\d*)\\/(\\d*)\\/(\\d*)"); //Slimmed down regex, may not have 100% format coverage
 					std::smatch match;
 					regex_search(string, match, regex);
 

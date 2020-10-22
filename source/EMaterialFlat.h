@@ -11,8 +11,8 @@ namespace Elite
 	class MaterialFlat : public Material
 	{
 	public:
-		MaterialFlat(ID3D11Device* pDevice, const std::wstring& effectPath, const std::string diffusePath, int id, bool hasTransparancy = false)
-			: Material{ pDevice, effectPath, id, hasTransparancy}
+		MaterialFlat(ID3D11Device* pDevice, const std::wstring& effectPath, const std::string diffusePath, const int id, const bool hasTransparency = false)
+			: Material{ pDevice, effectPath, id, hasTransparency}
 			, m_pDiffuseMap{ new Texture(pDevice, diffusePath) }
 		{
 			m_pDiffuseMapVariable = m_pEffect->GetVariableByName("gDiffuseMap")->AsShaderResource();
@@ -57,8 +57,8 @@ namespace Elite
 
 		void SetMatrices(const FMatrix4& projectionMat, const FMatrix4& inverseViewMat /*This is the ONB*/, const FMatrix4& worldMat) override
 		{
-			FMatrix4 worldViewProjection = projectionMat * Inverse(inverseViewMat) * worldMat;
-			FMatrix4 worldMatrix = worldMat;
+			auto worldViewProjection = projectionMat * Inverse(inverseViewMat) * worldMat;
+			auto worldMatrix = worldMat;
 
 			m_pMatWorldViewProjVariable->SetMatrix(&worldViewProjection(0, 0));
 			m_pMatWorldVariable->SetMatrix(&worldMatrix(0, 0));

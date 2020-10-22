@@ -19,10 +19,10 @@ namespace Elite
 	class Material
 	{
 	public:
-		Material(ID3D11Device* pDevice, const std::wstring& effectFile, int id, bool hasTransparancy = false)
-			: m_pEffect{ LoadEffect(pDevice, effectFile) }
-			, m_Id{ id }
-			, m_HasTransparancy{ hasTransparancy }
+		Material(ID3D11Device* pDevice, const std::wstring& effectFile, const int id, const bool hasTransparency = false)
+			: m_Id{ id }
+			, m_HasTransparency{ hasTransparency }
+			, m_pEffect{ LoadEffect(pDevice, effectFile) }
 		{
 			m_pTechnique = m_pEffect->GetTechniqueByName("DefaultTechnique");
 			if (!m_pTechnique->IsValid())
@@ -65,7 +65,7 @@ namespace Elite
 		//Getters
 		/*General*/
 		int GetId() const { return m_Id; }
-		bool HasTransparancy() const{ return m_HasTransparancy; }
+		bool HasTransparency() const{ return m_HasTransparency; }
 
 		/*Software*/
 		virtual FVector3 GetMappedNormal(const VertexOutput& v) const { return v.normal; }
@@ -79,7 +79,7 @@ namespace Elite
 	protected:
 		/*General*/
 		int m_Id;
-		bool m_HasTransparancy;
+		bool m_HasTransparency;
 		/*D3D*/
 		ID3DX11Effect* m_pEffect; // "SHADER"
 		ID3DX11EffectTechnique* m_pTechnique;
@@ -111,7 +111,7 @@ namespace Elite
 			{
 				if (pErrorBlob != nullptr)
 				{
-					char* pErrors = (char*)pErrorBlob->GetBufferPointer();
+					auto* pErrors = static_cast<char*>(pErrorBlob->GetBufferPointer());
 
 					std::wstringstream ss;
 					for (unsigned int i = 0; i < pErrorBlob->GetBufferSize(); i++)

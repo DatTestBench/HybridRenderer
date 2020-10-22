@@ -9,11 +9,11 @@
 
 namespace Elite
 {
-	class MaterialMapped : public Material
+	class MaterialMapped final : public Material
 	{
 	public:
-		MaterialMapped(ID3D11Device* pDevice, const std::wstring& effectPath, const std::string& diffusePath, const std::string& normalPath, const std::string& glossPath, const std::string& specularPath, float shininess, int id, bool hasTransparancy = false)
-			: Material{ pDevice, effectPath, id, hasTransparancy }
+		MaterialMapped(ID3D11Device* pDevice, const std::wstring& effectPath, const std::string& diffusePath, const std::string& normalPath, const std::string& glossPath, const std::string& specularPath, const float shininess, const int id, bool hasTransparency = false)
+			: Material{ pDevice, effectPath, id, hasTransparency }
 			, m_pDiffuseMap{ new Texture(pDevice, diffusePath) }
 			, m_pNormalMap{ new Texture(pDevice, normalPath) }
 			, m_pGlossinessMap{ new Texture(pDevice, glossPath) }
@@ -115,9 +115,9 @@ namespace Elite
 
 		void SetMatrices(const FMatrix4& projectionMat, const FMatrix4& inverseViewMat /*This is the OBN*/, const FMatrix4& worldMat) override
 		{
-			FMatrix4 worldViewProjection = projectionMat * Inverse(inverseViewMat) * worldMat;
-			FMatrix4 worldMatrix = worldMat;
-			FMatrix4 inverseViewMatrix = inverseViewMat;
+			auto worldViewProjection = projectionMat * Inverse(inverseViewMat) * worldMat;
+			auto worldMatrix = worldMat;
+			auto inverseViewMatrix = inverseViewMat;
 
 			m_pMatWorldViewProjVariable->SetMatrix(&worldViewProjection(0, 0));
 			m_pMatWorldVariable->SetMatrix(&worldMatrix(0, 0));
@@ -136,9 +136,9 @@ namespace Elite
 			if (m_pNormalMap == nullptr)
 				return v.normal;
 
-			FVector3 binormal = Cross(v.tangent, v.normal);
-			FMatrix3 tangentSpaceAxis = FMatrix3(v.tangent, binormal, v.normal);
-			FVector3 mappedNormal = m_pNormalMap->SampleV(v.uv);
+			const auto binormal = Cross(v.tangent, v.normal);
+			auto tangentSpaceAxis = FMatrix3(v.tangent, binormal, v.normal);
+			auto mappedNormal = m_pNormalMap->SampleV(v.uv);
 			mappedNormal /= 255.f;
 			mappedNormal = 2.f * mappedNormal - FVector3(1.f, 1.f, 1.f);
 			mappedNormal = tangentSpaceAxis * mappedNormal;

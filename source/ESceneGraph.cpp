@@ -9,11 +9,10 @@ Elite::SceneGraph* Elite::SceneGraph::m_pSceneGraph = nullptr;
 Elite::Camera* Elite::SceneGraph::m_pCamera = nullptr;
 
 Elite::SceneGraph::SceneGraph()
-	: m_Objects{}
-	, m_CurrentScene{ 0 }
-	, m_RenderType{ RenderType::Color }
-	, m_RenderSystem{ RenderSystem::Software }
-	, m_ShowTransparancy{ true }
+	: m_CurrentScene{ 0 }
+	, m_RenderType{ Color }
+	, m_RenderSystem{ Software }
+	, m_ShowTransparency{ true }
 	, m_AreObjectsRotating{ true }
 {
 }
@@ -55,13 +54,13 @@ void Elite::SceneGraph::AddScene(int sceneIdx)
 	m_pScenes.try_emplace(sceneIdx);
 }
 
-void Elite::SceneGraph::SetCamera(const FPoint3& origin, uint32_t windowWidth, uint32_t windowHeight, float fovD)
+void Elite::SceneGraph::SetCamera(const FPoint3& origin, uint32_t windowWidth, const uint32_t windowHeight, const float fovD)
 {
 	if (m_pCamera == nullptr)
 		m_pCamera = new Camera(origin, windowWidth, windowHeight, fovD);
 }
 
-void Elite::SceneGraph::ChangeCameraResolution(uint32_t width, uint32_t height)
+void Elite::SceneGraph::ChangeCameraResolution(const uint32_t width, const uint32_t height)
 {
 	if (m_pCamera == nullptr)
 		return;
@@ -70,9 +69,9 @@ void Elite::SceneGraph::ChangeCameraResolution(uint32_t width, uint32_t height)
 #pragma endregion
 
 #pragma region Workers
-void Elite::SceneGraph::Update(float dT)
+void Elite::SceneGraph::Update(const float dT)
 {
-	float rotationSpeed{};
+	float rotationSpeed;
 	if (m_AreObjectsRotating)
 	{
 		rotationSpeed = 0.5f;
@@ -97,19 +96,19 @@ void Elite::SceneGraph::IncreaseScene()
 
 void Elite::SceneGraph::DecreaseScene()
 {
-	m_CurrentScene = (m_CurrentScene == 0) ? int(m_pScenes.size()) - 1 : m_CurrentScene - 1;
+	m_CurrentScene = (m_CurrentScene == 0) ? static_cast<int32_t>(m_pScenes.size()) - 1 : m_CurrentScene - 1;
 	std::cout << "Scene " << m_CurrentScene + 1 << " / " << m_pScenes.size() << std::endl;
 }
 
 void Elite::SceneGraph::ToggleRenderType()
 {
-	if (m_RenderSystem == RenderSystem::D3D)
+	if (m_RenderSystem == D3D)
 	{
 		std::cout << "RenderType can not be changed in D3D mode\n";
 		return;
 	}
 
-	m_RenderType = (m_RenderType == RenderType::RenderTypeSize - 1) ? RenderType(0) : RenderType(m_RenderType + 1);
+	m_RenderType = (m_RenderType == RenderTypeSize - 1) ? static_cast<RenderType>(0) : static_cast<RenderType>(m_RenderType + 1);
 	
 	std::cout << "Rendertype changed to ";
 	switch (m_RenderType)
@@ -127,14 +126,14 @@ void Elite::SceneGraph::ToggleRenderType()
 
 void Elite::SceneGraph::ToggleRenderSystem()
 {
-	m_RenderSystem = (m_RenderSystem == RenderSystem::RenderSystemSize - 1) ? RenderSystem(0) : RenderSystem(m_RenderSystem + 1);
+	m_RenderSystem = (m_RenderSystem == RenderSystem::RenderSystemSize - 1) ? static_cast<RenderSystem>(0) : static_cast<RenderSystem>(m_RenderSystem + 1);
 	std::cout << "Rendersystem changed to ";
 	switch (m_RenderSystem)
 	{
-	case RenderSystem::Software:
+	case Software:
 		std::cout << "software\n";
 		break;
-	case RenderSystem::D3D:
+	case D3D:
 		std::cout << "D3D\n";
 		break;
 	default:
@@ -143,23 +142,23 @@ void Elite::SceneGraph::ToggleRenderSystem()
 	m_pCamera->ToggleRenderSystem(m_RenderSystem);
 }
 
-void Elite::SceneGraph::ToggleTransparancy()
+void Elite::SceneGraph::ToggleTransparency()
 {
-	if (m_RenderSystem == RenderSystem::Software)
+	if (m_RenderSystem == Software)
 	{
-		std::cout << "Transparancy toggle not available in software mode\n";
+		std::cout << "Transparency toggle not available in software mode\n";
 		return;
 	}
 
-	m_ShowTransparancy = !m_ShowTransparancy;
+	m_ShowTransparency = !m_ShowTransparency;
 
-	if (m_ShowTransparancy)
+	if (m_ShowTransparency)
 	{
-		std::cout << "Transparancy on\n";
+		std::cout << "Transparency on\n";
 	}
 	else
 	{
-		std::cout << "Transparancy off\n";
+		std::cout << "Transparency off\n";
 	}
 }
 
@@ -179,17 +178,17 @@ void Elite::SceneGraph::ToggleObjectRotation()
 #pragma endregion
 
 #pragma region Getters
-const std::vector<Elite::Mesh*>& Elite::SceneGraph::GetObjects()
+const std::vector<Elite::Mesh*>& Elite::SceneGraph::GetObjects() const
 {
 	return m_Objects;
 }
 
-const std::vector<Elite::Mesh*>& Elite::SceneGraph::GetCurrentSceneObjects()
+const std::vector<Elite::Mesh*>& Elite::SceneGraph::GetCurrentSceneObjects() const 
 {
 	return m_pScenes.at(m_CurrentScene);
 }
 
-Elite::Camera* Elite::SceneGraph::GetCamera() const
+Elite::Camera* Elite::SceneGraph::GetCamera()
 {
 	return m_pCamera;
 }
@@ -204,9 +203,9 @@ const Elite::RenderSystem& Elite::SceneGraph::GetRenderSystem() const
 	return m_RenderSystem;
 }
 
-bool Elite::SceneGraph::IsTransparancyOn() const
+bool Elite::SceneGraph::IsTransparencyOn() const
 {
-	return m_ShowTransparancy;
+	return m_ShowTransparency;
 }
 
 size_t Elite::SceneGraph::AmountOfScenes() const

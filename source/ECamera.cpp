@@ -4,21 +4,22 @@
 #include "SDL.h"
 #include <iostream>
 #include <algorithm>
-Elite::Camera::Camera(const FPoint3& origin, uint32_t windowWidth, uint32_t windowHeight, float fovD, float nearPlane, float farPlane)
+Elite::Camera::Camera(const FPoint3& origin, const uint32_t windowWidth, const uint32_t windowHeight, const float fovD, const float nearPlane, const float farPlane)
 	: m_Origin{ origin }
 	, m_RenderSystem{ RenderSystem::Software }
-	, m_Width{ windowWidth }
-	, m_Height{ windowHeight }
-	, m_AspectRatio{ (float)windowWidth / windowHeight }
-	, m_FOV{ tanf((fovD * (float)E_TO_RADIANS) / 2.f) }
-	, m_LookAt{}
-	, m_Pitch{}
-	, m_Yaw{}
 	, m_MovementSensitivity{ 60.f }
 	, m_RotationSensitivity{ 0.5f }
+	, m_Pitch{}
+	, m_Yaw{}
+	, m_Width{ windowWidth }
+	, m_Height{ windowHeight }
+	, m_AspectRatio{ static_cast<float>(windowWidth) / windowHeight }
+	, m_FOV{ tanf(fovD * static_cast<float>(E_TO_RADIANS) / 2.f) }
 	, m_NearPlane{ nearPlane }
 	, m_FarPlane{ farPlane }
+	, m_LookAt{}
 	, m_ProjectionMatrix{}
+	, m_ViewMatrix{}
 {
 	//Default render system is software, so matrix is right handed by default
 	m_ProjectionMatrix = {
@@ -40,8 +41,8 @@ void Elite::Camera::UpdateLookAtMatrix(float dT)
 {
 	IVector2 dMove;
 
-	uint32_t buttonMask = SDL_GetRelativeMouseState(&dMove.x, &dMove.y);
-	const uint8_t* keyState = SDL_GetKeyboardState(nullptr);
+	const auto buttonMask = SDL_GetRelativeMouseState(&dMove.x, &dMove.y);
+	const auto* keyState = SDL_GetKeyboardState(nullptr);
 
 	FVector3 movement{};
 	FVector3 worldMovement{};
@@ -60,7 +61,7 @@ void Elite::Camera::UpdateLookAtMatrix(float dT)
 	//Horizontal rotation + Horizontal movement (Z) in local space
 	if (buttonMask == SDL_BUTTON_LMASK)
 	{
-		m_Yaw -= dMove.x * float(E_TO_RADIANS) * m_RotationSensitivity;
+		m_Yaw -= dMove.x * static_cast<float>(E_TO_RADIANS) * m_RotationSensitivity;
 		movement.z += m_MovementSensitivity * dMove.y;
 	}
 	//Horizontal movement (X) in local space + Horizontal movement (Z) in local space
@@ -72,8 +73,8 @@ void Elite::Camera::UpdateLookAtMatrix(float dT)
 	//Free cam rotation
 	if (buttonMask == SDL_BUTTON_RMASK)
 	{
-		m_Yaw -= dMove.x * float(E_TO_RADIANS) * m_RotationSensitivity;
-		m_Pitch -= dMove.y * float(E_TO_RADIANS) * m_RotationSensitivity;
+		m_Yaw -= dMove.x * static_cast<float>(E_TO_RADIANS) * m_RotationSensitivity;
+		m_Pitch -= dMove.y * static_cast<float>(E_TO_RADIANS) * m_RotationSensitivity;
 	}
 
 	//Keyboard movement (Y) in world space
@@ -107,16 +108,16 @@ void Elite::Camera::UpdateLookAtMatrix(float dT)
 		movement.x += m_MovementSensitivity;
 	}
 
-	//Apply localspace movement (m_LookAt needs to be transposed for D3D because...reasons??? - 
+	//Apply local space movement (m_LookAt needs to be transposed for D3D because...reasons??? - 
 	//seemingly because vector transformation need the transposed inverse of the world matrix)
 	//Some movement is still broken when y < 0
 
 	switch (m_RenderSystem)
 	{
-	case RenderSystem::Software:
+	case Software:
 		m_Origin += (FVector3(m_LookAt * FVector4(movement)) + worldMovement) * dT;
 		break;
-	case RenderSystem::D3D:
+	case D3D:
 		m_Origin += (FVector3(Transpose(m_LookAt) * FVector4(movement)) + worldMovement) * dT;
 		break;
 	default:
@@ -124,9 +125,9 @@ void Elite::Camera::UpdateLookAtMatrix(float dT)
 	}
 
 	//Clamping pitch to prevent wonky behaviour when going over (or close to), 90 degrees.
-	m_Pitch = Clamp(m_Pitch, (float)E_TO_RADIANS * -80.f, (float)E_TO_RADIANS * 80.f);
+	m_Pitch = Clamp(m_Pitch, static_cast<float>(E_TO_RADIANS) * -80.f, static_cast<float>(E_TO_RADIANS) * 80.f);
 	//Fmodding yaw to allow for rollover and 360 degree movement.
-	m_Yaw = fmod(m_Yaw, (float)E_PI_2);
+	m_Yaw = fmod(m_Yaw, static_cast<float>(E_PI_2));
 
 
 
@@ -147,10 +148,10 @@ void Elite::Camera::UpdateLookAtMatrix(float dT)
 
 	//Using intermediate approach as flipping the x and y of the forward vector also has to affect the right and up vector
 	//FPS Camera for Forward, rest is lookat construction
-	float cosPitch = cos(m_Pitch);
-	float sinPitch = sin(m_Pitch);
-	float cosYaw = cos(m_Yaw);
-	float sinYaw = sin(m_Yaw);
+	const auto cosPitch = cos(m_Pitch);
+	const auto sinPitch = sin(m_Pitch);
+	const auto cosYaw = cos(m_Yaw);
+	const auto sinYaw = sin(m_Yaw);
 
 	FVector4 forward{};
 	FVector4 worldUp{ 0, 1, 0, 0 };
@@ -159,7 +160,7 @@ void Elite::Camera::UpdateLookAtMatrix(float dT)
 
 	switch (m_RenderSystem)
 	{
-	case RenderSystem::Software:
+	case Software:
 
 		forward = { sinYaw * cosPitch, -sinPitch, cosPitch * cosYaw };
 		right = { GetNormalized(Cross(worldUp.xyz, forward.xyz)), 0.f };
@@ -168,7 +169,7 @@ void Elite::Camera::UpdateLookAtMatrix(float dT)
 		m_LookAt = FMatrix4(right, up, forward, FVector4(m_Origin.x, m_Origin.y, m_Origin.z, 1.f));
 
 		break;
-	case RenderSystem::D3D:
+	case D3D:
 
 		forward = { -sinYaw * cosPitch, sinPitch, cosPitch * cosYaw };
 		right = { GetNormalized(Cross(worldUp.xyz, forward.xyz)), 0.f };
@@ -196,11 +197,11 @@ void Elite::Camera::UpdateLookAtMatrix(float dT)
 
 /*Software*/
 
-void Elite::Camera::MakeScreenSpace(Mesh* pMesh)
+void Elite::Camera::MakeScreenSpace(Mesh* pMesh) const 
 {
 	std::vector<VertexOutput> sSVertices;
 
-	auto viewProjWorldMatrix = m_ProjectionMatrix * Inverse(m_LookAt) * pMesh->GetWorld();
+	const auto viewProjWorldMatrix = m_ProjectionMatrix * Inverse(m_LookAt) * pMesh->GetWorld();
 
 	for (auto& v : pMesh->GetVertices())
 	{
@@ -226,8 +227,8 @@ void Elite::Camera::MakeScreenSpace(Mesh* pMesh)
 			sSV.culled = false;
 		}
 
-		sSV.pos.x = (((sSV.pos.x + 1) / 2) * m_Width);
-		sSV.pos.y = (((1 - sSV.pos.y) / 2) * m_Height);
+		sSV.pos.x = (sSV.pos.x + 1) / 2 * m_Width;
+		sSV.pos.y = (1 - sSV.pos.y) / 2 * m_Height;
 		sSVertices.push_back(sSV);
 	}
 	pMesh->SetScreenSpaceVertices(sSVertices);
@@ -235,15 +236,15 @@ void Elite::Camera::MakeScreenSpace(Mesh* pMesh)
 #pragma endregion
 
 #pragma region Setters
-void Elite::Camera::SetResolution(uint32_t width, uint32_t height)
+void Elite::Camera::SetResolution(const uint32_t width, const uint32_t height)
 {
 	m_Width = width;
 	m_Height = height;
-	m_AspectRatio = (float)width / height;
+	m_AspectRatio = static_cast<float>(width) / height;
 }
-void Elite::Camera::SetFOV(float fovD)
+void Elite::Camera::SetFOV(const float fovD)
 {
-	m_FOV = tanf((fovD * (float)E_TO_RADIANS) / 2.f);
+	m_FOV = tanf(fovD * static_cast<float>(E_TO_RADIANS) / 2.f);
 }
 
 void Elite::Camera::ToggleRenderSystem(const RenderSystem& renderSystem)
@@ -251,7 +252,7 @@ void Elite::Camera::ToggleRenderSystem(const RenderSystem& renderSystem)
 	m_RenderSystem = renderSystem;
 	switch (m_RenderSystem)
 	{
-	case RenderSystem::Software:
+	case Software:
 		m_ProjectionMatrix = {
 			{ 1.f / (m_AspectRatio * m_FOV), 0, 0, 0 },
 			{ 0, 1.f / m_FOV, 0, 0 },
@@ -259,7 +260,7 @@ void Elite::Camera::ToggleRenderSystem(const RenderSystem& renderSystem)
 			{ 0, 0, (m_FarPlane * m_NearPlane) / (m_NearPlane - m_FarPlane), 0 }
 		};
 		break;
-	case RenderSystem::D3D:
+	case D3D:
 		m_ProjectionMatrix = {
 				{ 1.f / (m_AspectRatio * m_FOV), 0, 0, 0 },
 				{ 0, 1.f / m_FOV, 0, 0 },

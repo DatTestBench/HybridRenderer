@@ -2,7 +2,6 @@
 #define ELITE_MATERIAL_MANAGER
 
 //Project includes
-#include <vector>
 #include <unordered_map>
 #include "EMaterial.h"
 
@@ -28,7 +27,7 @@ namespace Elite
 
 			//Singleton Functionality
 			static MaterialManager* GetInstance();
-			void Destroy();
+			static void Destroy();
 
 			//External Item Manipulation
 			void AddMaterial(Material* pMaterial);

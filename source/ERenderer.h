@@ -20,7 +20,7 @@ namespace Elite
 	class Renderer final
 	{
 	public:
-		Renderer(SDL_Window* pWindow);
+		explicit Renderer(SDL_Window* pWindow);
 		~Renderer();
 
 		Renderer(const Renderer&) = delete;
@@ -28,7 +28,7 @@ namespace Elite
 		Renderer& operator=(const Renderer&) = delete;
 		Renderer& operator=(Renderer&&) noexcept = delete;
 
-		void Render();
+		void Render() const;
 
 	private:
 		/*General*/

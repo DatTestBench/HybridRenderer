@@ -19,7 +19,7 @@ namespace Elite
 
 		//Workers
 		void Update(float dT);
-		void MakeScreenSpace(Mesh* pMesh);
+		void MakeScreenSpace(Mesh* pMesh) const;
 		//Setters
 		void SetResolution(uint32_t width, uint32_t height);
 		void SetFOV(float fovD);

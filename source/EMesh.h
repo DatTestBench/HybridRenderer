@@ -38,11 +38,11 @@ namespace Elite
 
 		//Workers
 		/*General*/
-		void Update(float dT, float rotationSpeed);
+		void Update(float dT, float rotationSpeed) noexcept;
 		/*Software*/
 		bool Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height);
 		/*D3D*/
-		void Render(ID3D11DeviceContext* pDeviceContext, Camera* pCamera);
+		void Render(ID3D11DeviceContext* pDeviceContext, Camera* pCamera) const noexcept;
 		
 
 		//Setters
@@ -72,9 +72,9 @@ namespace Elite
 		std::vector<VertexOutput> m_SSVertices;
 
 		bool AssembleTriangle(int idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height);
-		std::tuple<bool, float, float, FVector3> IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const FPoint2& pixelPoint);
-		RGBColor PixelShading(const VertexOutput& v);
-		std::tuple<FVector2, FVector2> MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, uint32_t maxScreenWidth = INT_MAX, uint32_t maxScreenHeight = INT_MAX);
+		std::tuple<bool, float, float, FVector3> IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const FPoint2& pixelPoint) const noexcept;
+		RGBColor PixelShading(const VertexOutput& v) const noexcept;
+		std::tuple<FVector2, FVector2> MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, uint32_t maxScreenWidth = INT_MAX, uint32_t maxScreenHeight = INT_MAX) const noexcept;
 
 
 		/*D3D*/

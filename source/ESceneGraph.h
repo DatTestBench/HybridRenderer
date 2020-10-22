@@ -32,13 +32,13 @@ namespace Elite
 
 			//Singleton Functionality
 			static SceneGraph* GetInstance();
-			void Destroy();
+			static void Destroy();
 
 			//External Item Manipulation
 			void AddObjectToGraph(Mesh* pObject, int sceneIdx);
 			void AddScene(int sceneIdx);
-			void SetCamera(const FPoint3& origin, uint32_t windowWidth = 640, uint32_t windowHeight = 480, float fovD = 45);
-			void ChangeCameraResolution(uint32_t width, uint32_t height);
+			static void SetCamera(const FPoint3& origin, uint32_t windowWidth = 640, uint32_t windowHeight = 480, float fovD = 45);
+			static void ChangeCameraResolution(uint32_t width, uint32_t height);
 
 			//Workers
 			void Update(float dT);
@@ -46,16 +46,16 @@ namespace Elite
 			void DecreaseScene();
 			void ToggleRenderType();
 			void ToggleRenderSystem();
-			void ToggleTransparancy();
+			void ToggleTransparency();
 			void ToggleObjectRotation();
 
 			//Getters
-			const std::vector<Mesh*>& GetObjects();
-			const std::vector<Mesh*>& GetCurrentSceneObjects();
-			Camera* GetCamera() const;
+			const std::vector<Mesh*>& GetObjects() const;
+			const std::vector<Mesh*>& GetCurrentSceneObjects() const;
+			static Camera* GetCamera();
 			const RenderType& GetRenderType() const;
 			const RenderSystem& GetRenderSystem() const;
-			bool IsTransparancyOn() const;
+			bool IsTransparencyOn() const;
 			size_t AmountOfScenes() const;
 			size_t Size() const;
 		private:
@@ -71,7 +71,7 @@ namespace Elite
 			int m_CurrentScene;
 			RenderType m_RenderType;
 			RenderSystem m_RenderSystem;
-			bool m_ShowTransparancy;
+			bool m_ShowTransparency;
 			bool m_AreObjectsRotating;
 
 		};

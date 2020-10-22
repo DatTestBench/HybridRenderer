@@ -24,8 +24,8 @@ void PrintToolTip()
 	std::cout << "\tI: Show help screen\n";
 	std::cout << "\tR: Toggle between software and D3D rendering\n";
 	std::cout << "\tF: Toggle between filter state (order: point, linear, anisotropic)\n";
-	std::cout << "\tT: Toggle transparancy on/off (only available in D3D)\n";
-	std::cout << "\tM: Toggle rendertype between color/depthbuffer (only available in software)\n";
+	std::cout << "\tT: Toggle transparency on/off (only available in D3D)\n";
+	std::cout << "\tM: Toggle rendertype between color/depth-buffer (only available in software)\n";
 	std::cout << "\t1/2: Increase/decrease scene respectively (" << Elite::SceneGraph::GetInstance()->AmountOfScenes() << " scene(s) currently loaded)\n";
 	std::cout << "\tY: Toggle object rotation on/off\n";
 }
@@ -41,7 +41,7 @@ int main(int argc, char* args[])
 
 	const uint32_t width = 1280;
 	const uint32_t height = 720;
-	SDL_Window* pWindow = SDL_CreateWindow(
+	auto* pWindow = SDL_CreateWindow(
 		"DualRenderer - **Matthieu Limelette**",
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
@@ -52,13 +52,13 @@ int main(int argc, char* args[])
 
 	//Initialize "framework"
 	auto pTimer{ std::make_unique<Elite::Timer>() };
-	auto pRenderer{ std::make_unique<Elite::Renderer>(pWindow) };
+	const auto pRenderer{ std::make_unique<Elite::Renderer>(pWindow) };
 	PrintToolTip();
 	
 	//Start loop
 	pTimer->Start();
-	float printTimer = 0.f;
-	bool isLooping = true;
+	auto printTimer = 0.f;
+	auto isLooping = true;
 
 	while (isLooping)
 	{
@@ -81,13 +81,15 @@ int main(int argc, char* args[])
 				if (e.key.keysym.scancode == SDL_SCANCODE_F)
 					Elite::MaterialManager::GetInstance()->ChangeFilterType();
 				if (e.key.keysym.scancode == SDL_SCANCODE_T)
-					Elite::SceneGraph::GetInstance()->ToggleTransparancy();
+					Elite::SceneGraph::GetInstance()->ToggleTransparency();
 				if (e.key.keysym.scancode == SDL_SCANCODE_R)
 					Elite::SceneGraph::GetInstance()->ToggleRenderSystem();
 				if (e.key.keysym.scancode == SDL_SCANCODE_M)
 					Elite::SceneGraph::GetInstance()->ToggleRenderType();
 				if (e.key.keysym.scancode == SDL_SCANCODE_Y)
 					Elite::SceneGraph::GetInstance()->ToggleObjectRotation();
+				break;
+			default:
 				break;
 			}
 		}

@@ -5,8 +5,7 @@
 Elite::MaterialManager* Elite::MaterialManager::m_pMaterialManager = nullptr;
 
 Elite::MaterialManager::MaterialManager()
-	: m_Materials{}
-	, m_SamplerType{ SamplerType::SPoint }
+	: m_SamplerType{ SPoint }
 {
 }
 
@@ -29,7 +28,7 @@ Elite::MaterialManager* Elite::MaterialManager::GetInstance()
 
 void Elite::MaterialManager::Destroy()
 {
-	delete MaterialManager::GetInstance();
+	delete GetInstance();
 }
 #pragma endregion
 
@@ -58,7 +57,7 @@ Elite::Material* Elite::MaterialManager::GetMaterial(Mesh* pObject) const
 
 size_t Elite::MaterialManager::Size() const
 {
-	return size_t(m_Materials.size());
+	return m_Materials.size();
 }
 #pragma endregion
 
@@ -66,13 +65,13 @@ size_t Elite::MaterialManager::Size() const
 
 void Elite::MaterialManager::ChangeFilterType()
 {
-	if (SceneGraph::GetInstance()->GetRenderSystem() == RenderSystem::Software)
+	if (SceneGraph::GetInstance()->GetRenderSystem() == Software)
 	{
 		std::cout << "FilterType can not be changed in software mode\n";
 		return;
 	}
 
-	m_SamplerType = (m_SamplerType == SamplerType::SamplerSize - 1) ? SamplerType(0) : SamplerType(m_SamplerType + 1);
+	m_SamplerType = m_SamplerType == SamplerSize - 1 ? static_cast<SamplerType>(0) : static_cast<SamplerType>(m_SamplerType + 1);
 	std::cout << "Sample type: ";
 	switch (m_SamplerType)
 	{

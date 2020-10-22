@@ -6,8 +6,6 @@
 
 Elite::Mesh::Mesh(ID3D11Device* pDevice, const std::string& modelPath, Material* pMaterial, const FPoint3& origin)
 	: m_MaterialId{ pMaterial->GetId() }
-	, m_IndexBuffer{  }
-	, m_VertexBuffer{  }
 	, m_pIndexBuffer{ nullptr }
 	, m_pVertexLayout{ nullptr }
 	, m_pVertexBuffer{ nullptr }
@@ -33,17 +31,17 @@ Elite::Mesh::~Mesh()
 
 #pragma region Workers
 /*General*/
-void Elite::Mesh::Update(float dT, float rotationSpeed)
+void Elite::Mesh::Update(const float dT, const float rotationSpeed) noexcept
 {
 	FMatrix3 rotationMatrix{};
 	m_RotationAngle += rotationSpeed * dT;
-	m_RotationAngle = (m_RotationAngle > (float)E_PI_2) ? m_RotationAngle - (float)E_PI_2 : m_RotationAngle;
+	m_RotationAngle = m_RotationAngle > static_cast<float>(E_PI_2) ? m_RotationAngle - static_cast<float>(E_PI_2) : m_RotationAngle;
 	switch (SceneGraph::GetInstance()->GetRenderSystem())
 	{
-	case RenderSystem::Software:
+	case Software:
 		rotationMatrix = MakeRotationY(m_RotationAngle);
 		break;
-	case RenderSystem::D3D:
+	case D3D:
 		//Flipping the axis the model is rotating around, because DirectX is lefthanded!
 		rotationMatrix = MakeRotation(m_RotationAngle, FVector3(0, -1, 0));
 		break;
@@ -54,12 +52,12 @@ void Elite::Mesh::Update(float dT, float rotationSpeed)
 }
 
 /*Software*/
-bool Elite::Mesh::Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height)
+bool Elite::Mesh::Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, const uint32_t width, const uint32_t height)
 {
-	bool meshHit = false;
+	auto meshHit = false;
 
 	//Check if material on mesh should actually be rendered
-	if (MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->HasTransparancy())
+	if (MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->HasTransparency())
 	{
 		return meshHit;
 	}
@@ -79,7 +77,7 @@ bool Elite::Mesh::Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels,
 
 	for (uint32_t i = 0; i < m_IndexBuffer.size() - 2; i += increment)
 	{
-		bool triHit = AssembleTriangle(i, backBuffer, backBufferPixels, depthBuffer, width, height);
+		const auto triHit = AssembleTriangle(i, backBuffer, backBufferPixels, depthBuffer, width, height);
 		if (triHit)
 		{
 			meshHit = true;
@@ -97,30 +95,30 @@ bool Elite::Mesh::AssembleTriangle(int idx, SDL_Surface* backBuffer, uint32_t* b
 
 	switch (m_Topology)
 	{
-	case Elite::PrimitiveTopology::TriangleList:
-		v0 = m_SSVertices[m_IndexBuffer[uint64_t(idx)]];
+	case PrimitiveTopology::TriangleList:
+		v0 = m_SSVertices[m_IndexBuffer[static_cast<uint64_t>(idx)]];
 
 		if (v0.pos.z < 0)
 			return false;
-		v1 = m_SSVertices[m_IndexBuffer[uint64_t(idx) + 1]];
+		v1 = m_SSVertices[m_IndexBuffer[static_cast<uint64_t>(idx) + 1]];
 
 		if (v1.pos.z < 0)
 			return false;
-		v2 = m_SSVertices[m_IndexBuffer[uint64_t(idx) + 2]];
+		v2 = m_SSVertices[m_IndexBuffer[static_cast<uint64_t>(idx) + 2]];
 
 		if (v2.pos.z < 0)
 			return false;
 		break;
-	case Elite::PrimitiveTopology::TriangleStrip:
-		if (m_IndexBuffer[idx] == m_IndexBuffer[uint64_t(idx) + 1] || m_IndexBuffer[uint64_t(idx) + 1] == m_IndexBuffer[uint64_t(idx) + 2] || m_IndexBuffer[uint64_t(idx) + 2] == m_IndexBuffer[idx])
+	case PrimitiveTopology::TriangleStrip:
+		if (m_IndexBuffer[idx] == m_IndexBuffer[static_cast<uint64_t>(idx) + 1] || m_IndexBuffer[static_cast<uint64_t>(idx) + 1] == m_IndexBuffer[static_cast<uint64_t>(idx) + 2] || m_IndexBuffer[static_cast<uint64_t>(idx) + 2] == m_IndexBuffer[idx])
 			return false;
 		v0 = m_SSVertices[m_IndexBuffer[idx]];
 		if (v0.pos.z < 0)
 			return false;
-		v1 = m_SSVertices[m_IndexBuffer[uint64_t(idx) + 1 + uint64_t(idx % 2)]];
+		v1 = m_SSVertices[m_IndexBuffer[static_cast<int64_t>(idx) + 1 + static_cast<uint64_t>(idx % 2)]];
 		if (v1.pos.z < 0)
 			return false;
-		v2 = m_SSVertices[m_IndexBuffer[uint64_t(idx) + 2 - uint64_t(idx % 2)]];
+		v2 = m_SSVertices[m_IndexBuffer[static_cast<uint64_t>(idx) + 2 - static_cast<uint64_t>(idx % 2)]];
 		if (v2.pos.z < 0)
 			return false;
 		break;
@@ -138,22 +136,22 @@ bool Elite::Mesh::AssembleTriangle(int idx, SDL_Surface* backBuffer, uint32_t* b
 	float w1{};
 	float w2{};
 
-	std::tuple<FVector2, FVector2> boundingBox = MakeBoundingBox(v0, v1, v2, width, height);
-	FVector2 boundingBoxMin = std::get<0>(boundingBox);
-	FVector2 boundingBoxMax = std::get<1>(boundingBox);
+	auto boundingBox = MakeBoundingBox(v0, v1, v2, width, height);
+	auto boundingBoxMin = std::get<0>(boundingBox);
+	auto boundingBoxMax = std::get<1>(boundingBox);
 
 	RGBColor finalColor{};
-	float depth = FLT_MAX;
+	auto depth = FLT_MAX;
 
-	for (uint32_t r = uint32_t(boundingBoxMin.y); r < uint32_t(boundingBoxMax.y); ++r)
+	for (uint32_t r = static_cast<uint32_t>(boundingBoxMin.y); r < static_cast<uint32_t>(boundingBoxMax.y); ++r)
 	{
-		for (uint32_t c = uint32_t(boundingBoxMin.x); c < uint32_t(boundingBoxMax.x); ++c)
+		for (uint32_t c = static_cast<uint32_t>(boundingBoxMin.x); c < static_cast<uint32_t>(boundingBoxMax.x); ++c)
 		{
-			std::tuple<bool, float, float, FVector3> triResult = IsPointInTriangle(v0, v1, v2, FPoint2(float(c), float(r)));
+			auto triResult = IsPointInTriangle(v0, v1, v2, FPoint2(static_cast<float>(c), static_cast<float>(r)));
 			if (std::get<0>(triResult))
 			{
 				depth = std::get<1>(triResult);
-				float linearInterpolatedDepth = std::get<2>(triResult);
+				auto linearInterpolatedDepth = std::get<2>(triResult);
 
 				w0 = std::get<3>(triResult).x;
 				w1 = std::get<3>(triResult).y;
@@ -163,19 +161,19 @@ bool Elite::Mesh::AssembleTriangle(int idx, SDL_Surface* backBuffer, uint32_t* b
 				{
 					VertexOutput vInterpolated = Interpolate(v0, v1, v2, w0, w1, w2, linearInterpolatedDepth);
 
-					switch (Elite::SceneGraph::GetInstance()->GetRenderType())
+					switch(SceneGraph::GetInstance()->GetRenderSystem())
 					{
-					case RenderType::Color:
+					case Color:
 						finalColor = PixelShading(vInterpolated);
 						break;
-					case RenderType::Depth:
+					case Depth:
 						finalColor = { Remap(depth, 0.985f, 1.f),Remap(depth, 0.985f, 1.f) ,Remap(depth, 0.985f, 1.f) };
 						break;
 					}
 
-					depthBuffer[c + (r * width)] = depth;
+					depthBuffer[c + r * width] = depth;
 
-					backBufferPixels[c + (r * width)] = SDL_MapRGB(backBuffer->format,
+					backBufferPixels[c + r * width] = SDL_MapRGB(backBuffer->format,
 						static_cast<uint8_t>(finalColor.r * 255),
 						static_cast<uint8_t>(finalColor.g * 255),
 						static_cast<uint8_t>(finalColor.b * 255));
@@ -185,65 +183,65 @@ bool Elite::Mesh::AssembleTriangle(int idx, SDL_Surface* backBuffer, uint32_t* b
 	}
 	return true;
 }
-std::tuple<bool, float, float, Elite::FVector3> Elite::Mesh::IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const FPoint2& pixelPoint)
+std::tuple<bool, float, float, Elite::FVector3> Elite::Mesh::IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const FPoint2& pixelPoint) const noexcept
 {
 	//Is point in triangle
-	FVector2 edgeA = v1.pos.xy - v0.pos.xy;
-	FVector2 pointToSide = pixelPoint - v0.pos.xy;
+	const auto edgeA = v1.pos.xy - v0.pos.xy;
+	auto pointToSide = pixelPoint - v0.pos.xy;
 
-	float signedAreaTriV2 = Cross(pointToSide, edgeA);
+	const auto signedAreaTriV2 = Cross(pointToSide, edgeA);
 	if (signedAreaTriV2 < 0)
 		return std::make_tuple(false, 0.f, 0.f, FVector3{});
 
-	FVector2 edgeB = v2.pos.xy - v1.pos.xy;
+	const auto edgeB = v2.pos.xy - v1.pos.xy;
 	pointToSide = pixelPoint - v1.pos.xy;
-	float signedAreaTriV0 = Cross(pointToSide, edgeB);
+	const auto signedAreaTriV0 = Cross(pointToSide, edgeB);
 	if (signedAreaTriV0 < 0)
 		return std::make_tuple(false, 0.f, 0.f, FVector3{});
 
-	FVector2 edgeC = v0.pos.xy - v2.pos.xy;
+	const auto edgeC = v0.pos.xy - v2.pos.xy;
 	pointToSide = pixelPoint - v2.pos.xy;
-	float signedAreaTriV1 = Cross(pointToSide, edgeC);
+	const auto signedAreaTriV1 = Cross(pointToSide, edgeC);
 	if (signedAreaTriV1 < 0)
 		return std::make_tuple(false, 0.f, 0.f, FVector3{});
 
 	//Weight Calculations
-	float signedAreaTriFull = Cross(FVector2(v1.pos.xy - v2.pos.xy), FVector2(v0.pos.xy - v1.pos.xy));
+	const auto signedAreaTriFull = Cross(FVector2(v1.pos.xy - v2.pos.xy), FVector2(v0.pos.xy - v1.pos.xy));
 	if (signedAreaTriFull < 0)
 		return std::make_tuple(false, 0.f, 0.f, FVector3{});
 
-	float w0 = signedAreaTriV0 / signedAreaTriFull;
-	float w1 = signedAreaTriV1 / signedAreaTriFull;
-	float w2 = signedAreaTriV2 / signedAreaTriFull;
+	const auto w0 = signedAreaTriV0 / signedAreaTriFull;
+	const auto w1 = signedAreaTriV1 / signedAreaTriFull;
+	const auto w2 = signedAreaTriV2 / signedAreaTriFull;
 
-	float interpolatedDepth = 1.f / ((1.f / v0.pos.z) * w0 + (1.f / v1.pos.z) * w1 + (1.f / v2.pos.z) * w2);
-	float linearInterpolatedDepth = 1.f / ((1.f / v0.pos.w) * w0 + (1.f / v1.pos.w) * w1 + (1.f / v2.pos.w) * w2);
+	const auto interpolatedDepth = 1.f / ((1.f / v0.pos.z) * w0 + (1.f / v1.pos.z) * w1 + (1.f / v2.pos.z) * w2);
+	const auto linearInterpolatedDepth = 1.f / ((1.f / v0.pos.w) * w0 + (1.f / v1.pos.w) * w1 + (1.f / v2.pos.w) * w2);
 
 	return std::make_tuple(true, interpolatedDepth, linearInterpolatedDepth, FVector3{ w0, w1, w2 });
 }
-Elite::RGBColor Elite::Mesh::PixelShading(const VertexOutput& v)
+Elite::RGBColor Elite::Mesh::PixelShading(const VertexOutput& v) const noexcept
 {
 	RGBColor finalColor = { 0.f, 0.f, 0.f };
-	FVector3 lightDirection = { 0.577f, -0.577f, 0.577f };
-	float lightIntensity = 7.f;
-	RGBColor lightColor = { 1.f, 1.f, 1.f };
-	FVector3 mappedNormal = MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->GetMappedNormal(v);
+	const FVector3 lightDirection = { 0.577f, -0.577f, 0.577f };
+	const auto lightIntensity = 7.f;
+	const RGBColor lightColor = { 1.f, 1.f, 1.f };
+	const auto mappedNormal = MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->GetMappedNormal(v);
 
-	float lambertCosine = Dot(-mappedNormal, lightDirection);
+	const auto lambertCosine = Dot(-mappedNormal, lightDirection);
 
 	if (lambertCosine < 0)
 	{
 		return finalColor;
 	}
 
-	finalColor += (lightColor * lightIntensity / (float)E_PI) * MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->Shade(v, lightDirection, -v.viewDirection, mappedNormal) * lambertCosine;
+	finalColor += (lightColor * lightIntensity / static_cast<float>(E_PI)) * MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->Shade(v, lightDirection, -v.viewDirection, mappedNormal) * lambertCosine;
 	finalColor.MaxToOne();
 	return finalColor;
 }
 
-std::tuple<Elite::FVector2, Elite::FVector2> Elite::Mesh::MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, uint32_t maxScreenWidth, uint32_t maxScreenHeight)
+std::tuple<Elite::FVector2, Elite::FVector2> Elite::Mesh::MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const uint32_t maxScreenWidth, const uint32_t maxScreenHeight) const noexcept
 {
-	FVector2 boundingBoxMin = { float(maxScreenWidth - 1), float(maxScreenHeight - 1) };
+	FVector2 boundingBoxMin = { static_cast<float>(maxScreenWidth - 1), static_cast<float>(maxScreenHeight - 1) };
 	FVector2 boundingBoxMax = { 0, 0 };
 
 	for (auto& v : { v0, v1, v2 })
@@ -266,10 +264,10 @@ std::tuple<Elite::FVector2, Elite::FVector2> Elite::Mesh::MakeBoundingBox(const 
 
 
 /*D3D*/
-void Elite::Mesh::Render(ID3D11DeviceContext* pDeviceContext, Camera* pCamera)
+void Elite::Mesh::Render(ID3D11DeviceContext* pDeviceContext, Camera* pCamera) const noexcept
 {
 	//Check if material of mesh should actually be rendered
-	if ((!SceneGraph::GetInstance()->IsTransparancyOn()) && MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->HasTransparancy())
+	if (!SceneGraph::GetInstance()->IsTransparencyOn() && MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->HasTransparency())
 	{
 		return;
 	}
@@ -350,18 +348,18 @@ void Elite::Mesh::MakeMesh(ID3D11Device* pDevice, const std::vector<uint32_t>& i
 	//Create vertex buffer
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_IMMUTABLE;
-	bd.ByteWidth = sizeof(VertexInput) * (uint32_t)vertices.size();
+	bd.ByteWidth = sizeof(VertexInput) * static_cast<uint32_t>(vertices.size());
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	bd.MiscFlags = 0;
-	D3D11_SUBRESOURCE_DATA initData = { 0 };
+	D3D11_SUBRESOURCE_DATA initData = { nullptr };
 	initData.pSysMem = vertices.data();
 	result = pDevice->CreateBuffer(&bd, &initData, &m_pVertexBuffer);
 	if (FAILED(result))
 		return;
 
 	//Create index buffer
-	m_AmountIndices = (uint32_t)indices.size();
+	m_AmountIndices = static_cast<uint32_t>(indices.size());
 	bd.Usage = D3D11_USAGE_IMMUTABLE;
 	bd.ByteWidth = sizeof(uint32_t) * m_AmountIndices;
 	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;

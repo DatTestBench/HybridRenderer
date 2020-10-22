@@ -25,8 +25,8 @@ Elite::Renderer::Renderer(SDL_Window* pWindow)
 	/*Software*/
 	m_pFrontBuffer = SDL_GetWindowSurface(pWindow);
 	m_pBackBuffer = SDL_CreateRGBSurface(0, m_Width, m_Height, 32, 0, 0, 0, 0);
-	m_pBackBufferPixels = (uint32_t*)m_pBackBuffer->pixels;
-	m_pDepthBuffer = new float[(uint64_t)m_Width * m_Height];
+	m_pBackBufferPixels = static_cast<uint32_t*>(m_pBackBuffer->pixels);
+	m_pDepthBuffer = new float[static_cast<uint64_t>(m_Width * m_Height)];
 
 
 	/*D3D*/
@@ -91,7 +91,7 @@ Elite::Renderer::~Renderer()
 		m_pDXGIFactory->Release();
 }
 
-void Elite::Renderer::Render()
+void Elite::Renderer::Render() const
 {
 
 	RGBColor clearColor{};
@@ -100,8 +100,8 @@ void Elite::Renderer::Render()
 	case Elite::RenderSystem::Software:
 		clearColor = { 128.f, 128.f, 128.f };
 		SDL_LockSurface(m_pBackBuffer);
-		std::fill(m_pDepthBuffer, m_pDepthBuffer + (uint64_t)m_Width * m_Height, FLT_MAX);
-		std::fill(m_pBackBufferPixels, m_pBackBufferPixels + (uint64_t)m_Width * m_Height, SDL_MapRGB(m_pBackBuffer->format,
+		std::fill(m_pDepthBuffer, m_pDepthBuffer + static_cast<uint64_t>(m_Width * m_Height), FLT_MAX);
+		std::fill(m_pBackBufferPixels, m_pBackBufferPixels + static_cast<uint64_t>(m_Width * m_Height), SDL_MapRGB(m_pBackBuffer->format,
 			static_cast<uint8_t>(clearColor.r),
 			static_cast<uint8_t>(clearColor.g),
 			static_cast<uint8_t>(clearColor.b)));
@@ -113,7 +113,7 @@ void Elite::Renderer::Render()
 		}
 
 		SDL_UnlockSurface(m_pBackBuffer);
-		SDL_BlitSurface(m_pBackBuffer, 0, m_pFrontBuffer, 0);
+		SDL_BlitSurface(m_pBackBuffer, nullptr, m_pFrontBuffer, nullptr);
 		SDL_UpdateWindowSurface(m_pWindow);
 		break;
 	case Elite::RenderSystem::D3D:
@@ -203,7 +203,7 @@ HRESULT Elite::Renderer::InitializeDirectX()
 	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	depthStencilViewDesc.Texture2D.MipSlice = 0;
 
-	result = m_pDevice->CreateTexture2D(&depthStencilDesc, 0, &m_pDepthStencilBuffer);
+	result = m_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, &m_pDepthStencilBuffer);
 	if (FAILED(result))
 		return result;
 
@@ -215,7 +215,7 @@ HRESULT Elite::Renderer::InitializeDirectX()
 	result = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&m_pRenderTargetBuffer));
 	if (FAILED(result))
 		return result;
-	result = m_pDevice->CreateRenderTargetView(m_pRenderTargetBuffer, 0, &m_pRenderTargetView);
+	result = m_pDevice->CreateRenderTargetView(m_pRenderTargetBuffer, nullptr, &m_pRenderTargetView);
 	if (FAILED(result))
 		return result;
 
