@@ -4,8 +4,8 @@
 /*=============================================================================*/
 // ERGBColor.h: struct that represents a RGB color
 /*=============================================================================*/
-#ifndef ELITE_MATH_RGBCOLOR
-#define	ELITE_MATH_RGBCOLOR
+#ifndef RGBCOLOR_HPP
+#define	RGBCOLOR_HPP
 
 #include "EMathUtilities.h"
 #include <algorithm>
@@ -101,4 +101,4 @@ namespace Elite
 		return c;
 	}
 }
-#endif
+#endif // !RGBCOLOR_HPP

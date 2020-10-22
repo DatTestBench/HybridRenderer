@@ -48,12 +48,14 @@
   <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -62,14 +64,16 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -78,49 +82,49 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="EBRDF.h" />
-    <ClInclude Include="ECamera.h" />
-    <ClInclude Include="EMaterial.h" />
-    <ClInclude Include="EMaterialFlat.h" />
-    <ClInclude Include="EMaterialManager.h" />
-    <ClInclude Include="EMaterialMapped.h" />
-    <ClInclude Include="EMath.h" />
-    <ClInclude Include="EMathUtilities.h" />
-    <ClInclude Include="EMatrix.h" />
-    <ClInclude Include="EMatrix2.h" />
-    <ClInclude Include="EMatrix3.h" />
-    <ClInclude Include="EMatrix4.h" />
-    <ClInclude Include="EMesh.h" />
-    <ClInclude Include="EMeshParser.h" />
-    <ClInclude Include="EPoint.h" />
-    <ClInclude Include="EPoint2.h" />
-    <ClInclude Include="EPoint3.h" />
-    <ClInclude Include="EPoint4.h" />
-    <ClInclude Include="ERenderer.h" />
-    <ClInclude Include="ERGBColor.h" />
-    <ClInclude Include="ESceneGraph.h" />
-    <ClInclude Include="ETexture.h" />
-    <ClInclude Include="ETimer.h" />
-    <ClInclude Include="EVector.h" />
-    <ClInclude Include="EVector2.h" />
-    <ClInclude Include="EVector3.h" />
-    <ClInclude Include="EVector4.h" />
-    <ClInclude Include="EVertex.h" />
-    <ClInclude Include="pch.h" />
+    <Folder Include="Lighting" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ECamera.cpp" />
-    <ClCompile Include="EMaterialManager.cpp" />
-    <ClCompile Include="EMesh.cpp" />
-    <ClCompile Include="ERenderer.cpp" />
-    <ClCompile Include="ESceneGraph.cpp" />
-    <ClCompile Include="ETexture.cpp" />
-    <ClCompile Include="ETimer.cpp" />
+    <ClCompile Include="Geometry\Mesh.cpp" />
+    <ClCompile Include="Helpers\Timer.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="Materials\MaterialManager.cpp" />
+    <ClCompile Include="Materials\Texture.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Rendering\Camera.cpp" />
+    <ClCompile Include="Rendering\Renderer.cpp" />
+    <ClCompile Include="Scene\SceneGraph.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Geometry\Mesh.hpp" />
+    <ClInclude Include="Helpers\EMath.h" />
+    <ClInclude Include="Helpers\EMathUtilities.h" />
+    <ClInclude Include="Helpers\EMatrix.h" />
+    <ClInclude Include="Helpers\EMatrix2.h" />
+    <ClInclude Include="Helpers\EMatrix3.h" />
+    <ClInclude Include="Helpers\EMatrix4.h" />
+    <ClInclude Include="Helpers\EPoint.h" />
+    <ClInclude Include="Helpers\EPoint2.h" />
+    <ClInclude Include="Helpers\EPoint3.h" />
+    <ClInclude Include="Helpers\EPoint4.h" />
+    <ClInclude Include="Helpers\EVector.h" />
+    <ClInclude Include="Helpers\EVector2.h" />
+    <ClInclude Include="Helpers\EVector3.h" />
+    <ClInclude Include="Helpers\EVector4.h" />
+    <ClInclude Include="Helpers\MeshParser.hpp" />
+    <ClInclude Include="Helpers\RGBColor.hpp" />
+    <ClInclude Include="Helpers\Timer.hpp" />
+    <ClInclude Include="Helpers\Vertex.hpp" />
+    <ClInclude Include="Materials\BRDF.hpp" />
+    <ClInclude Include="Materials\Material.hpp" />
+    <ClInclude Include="Materials\MaterialFlat.hpp" />
+    <ClInclude Include="Materials\MaterialManager.hpp" />
+    <ClInclude Include="Materials\MaterialMapped.hpp" />
+    <ClInclude Include="Materials\Texture.hpp" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Rendering\Camera.hpp" />
+    <ClInclude Include="Rendering\Renderer.hpp" />
+    <ClInclude Include="Scene\SceneGraph.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

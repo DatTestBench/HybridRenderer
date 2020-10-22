@@ -6,10 +6,10 @@
 #include <iostream>
 
 //Project includes
-#include "ETimer.h"
-#include "ERenderer.h"
-#include "ESceneGraph.h"
-#include "ECamera.h"
+#include "Helpers/Timer.hpp"
+#include "Rendering/Renderer.hpp"
+#include "Scene/SceneGraph.hpp"
+#include "Rendering/Camera.hpp"
 
 void ShutDown(SDL_Window* pWindow)
 {
@@ -26,7 +26,7 @@ void PrintToolTip()
 	std::cout << "\tF: Toggle between filter state (order: point, linear, anisotropic)\n";
 	std::cout << "\tT: Toggle transparency on/off (only available in D3D)\n";
 	std::cout << "\tM: Toggle rendertype between color/depth-buffer (only available in software)\n";
-	std::cout << "\t1/2: Increase/decrease scene respectively (" << Elite::SceneGraph::GetInstance()->AmountOfScenes() << " scene(s) currently loaded)\n";
+	std::cout << "\t1/2: Increase/decrease scene respectively (" << SceneGraph::GetInstance()->AmountOfScenes() << " scene(s) currently loaded)\n";
 	std::cout << "\tY: Toggle object rotation on/off\n";
 }
 
@@ -51,8 +51,8 @@ int main(int argc, char* args[])
 		return 1;
 
 	//Initialize "framework"
-	auto pTimer{ std::make_unique<Elite::Timer>() };
-	const auto pRenderer{ std::make_unique<Elite::Renderer>(pWindow) };
+	auto pTimer{ std::make_unique<Timer>() };
+	const auto pRenderer{ std::make_unique<Renderer>(pWindow) };
 	PrintToolTip();
 	
 	//Start loop
@@ -75,19 +75,19 @@ int main(int argc, char* args[])
 				if (e.key.keysym.scancode == SDL_SCANCODE_I)
 					PrintToolTip();
 				if (e.key.keysym.scancode == SDL_SCANCODE_2)
-					Elite::SceneGraph::GetInstance()->IncreaseScene();
+					SceneGraph::GetInstance()->IncreaseScene();
 				if (e.key.keysym.scancode == SDL_SCANCODE_1)
-					Elite::SceneGraph::GetInstance()->DecreaseScene();
+					SceneGraph::GetInstance()->DecreaseScene();
 				if (e.key.keysym.scancode == SDL_SCANCODE_F)
-					Elite::MaterialManager::GetInstance()->ChangeFilterType();
+					MaterialManager::GetInstance()->ChangeFilterType();
 				if (e.key.keysym.scancode == SDL_SCANCODE_T)
-					Elite::SceneGraph::GetInstance()->ToggleTransparency();
+					SceneGraph::GetInstance()->ToggleTransparency();
 				if (e.key.keysym.scancode == SDL_SCANCODE_R)
-					Elite::SceneGraph::GetInstance()->ToggleRenderSystem();
+					SceneGraph::GetInstance()->ToggleRenderSystem();
 				if (e.key.keysym.scancode == SDL_SCANCODE_M)
-					Elite::SceneGraph::GetInstance()->ToggleRenderType();
+					SceneGraph::GetInstance()->ToggleRenderType();
 				if (e.key.keysym.scancode == SDL_SCANCODE_Y)
-					Elite::SceneGraph::GetInstance()->ToggleObjectRotation();
+					SceneGraph::GetInstance()->ToggleObjectRotation();
 				break;
 			default:
 				break;
@@ -95,8 +95,8 @@ int main(int argc, char* args[])
 		}
 
 		//--------- Updates ---------
-		Elite::SceneGraph::GetInstance()->GetCamera()->Update(pTimer->GetElapsed());
-		Elite::SceneGraph::GetInstance()->Update(pTimer->GetElapsed());
+		SceneGraph::GetInstance()->GetCamera()->Update(pTimer->GetElapsed());
+		SceneGraph::GetInstance()->Update(pTimer->GetElapsed());
 		//--------- Render ---------
 		pRenderer->Render();
 
@@ -113,8 +113,8 @@ int main(int argc, char* args[])
 	pTimer->Stop();
 
 	//Shutdown "framework"
-	Elite::SceneGraph::GetInstance()->Destroy();
-	Elite::MaterialManager::GetInstance()->Destroy();
+	SceneGraph::GetInstance()->Destroy();
+	MaterialManager::GetInstance()->Destroy();
 	ShutDown(pWindow);
 	return 0;
 }

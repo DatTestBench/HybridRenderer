@@ -1,8 +1,8 @@
 #include "pch.h"
-#include "ETexture.h"
+#include "Materials/Texture.hpp"
 #include <SDL_image.h>
 
-Elite::Texture::Texture(ID3D11Device* pDevice, const std::string& filePath)
+Texture::Texture(ID3D11Device* pDevice, const std::string& filePath)
 	: m_pTexture{ nullptr }
 	, m_pTextureResourceView{ nullptr }
 	, m_pSurface{ IMG_Load(filePath.c_str()) }
@@ -10,7 +10,7 @@ Elite::Texture::Texture(ID3D11Device* pDevice, const std::string& filePath)
 	LoadTexture(pDevice, m_pSurface);
 }
 
-Elite::Texture::~Texture()
+Texture::~Texture()
 {
 	if (m_pTextureResourceView)
 		m_pTextureResourceView->Release();
@@ -22,44 +22,44 @@ Elite::Texture::~Texture()
 
 #pragma region Software
 
-Elite::RGBColor Elite::Texture::Sample(const FVector2& uv) const
+Elite::RGBColor Texture::Sample(const Elite::FVector2& uv) const
 {
-	FVector2 remappedUV;
+	Elite::FVector2 remappedUV;
 
-	remappedUV.x = Clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
-	remappedUV.y = Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
+	remappedUV.x = Elite::Clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
+	remappedUV.y = Elite::Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
 	SDL_Color color;
 
 	SDL_GetRGB(GetPixel(m_pSurface, int(remappedUV.x), int(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b);
 
-	return RGBColor(color.r / 255.f, color.g / 255.f, color.b / 255.f);
+	return Elite::RGBColor(color.r / 255.f, color.g / 255.f, color.b / 255.f);
 }
-Elite::FVector4 Elite::Texture::Sample4(const FVector2& uv) const
+Elite::FVector4 Texture::Sample4(const Elite::FVector2& uv) const
 {
-	FVector2 remappedUV;
+	Elite::FVector2 remappedUV;
 
-	remappedUV.x = Clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
-	remappedUV.y = Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
+	remappedUV.x = Elite::Clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
+	remappedUV.y = Elite::Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
 	SDL_Color color;
 
 	SDL_GetRGBA(GetPixel(m_pSurface, int(remappedUV.x), int(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b, &color.a);
 
-	return FVector4(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
+	return Elite::FVector4(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
 }
 
-Elite::FVector3 Elite::Texture::SampleV(const FVector2& uv) const
+Elite::FVector3 Texture::SampleV(const Elite::FVector2& uv) const
 {
-	FVector2 remappedUV;
+	Elite::FVector2 remappedUV;
 
-	remappedUV.x = Clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
-	remappedUV.y = Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
+	remappedUV.x = Elite::Clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
+	remappedUV.y = Elite::Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
 	SDL_Color color;
 
 	SDL_GetRGB(GetPixel(m_pSurface, static_cast<int32_t>(remappedUV.x), static_cast<int32_t>(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b);
 
-	return FVector3(color.r, color.g, color.b);
+	return Elite::FVector3(color.r, color.g, color.b);
 }
-float Elite::Texture::SampleF(const FVector2& uv, const int32_t component) const
+float Texture::SampleF(const Elite::FVector2& uv, const int32_t component) const
 {
 	switch (component)
 	{
@@ -75,7 +75,7 @@ float Elite::Texture::SampleF(const FVector2& uv, const int32_t component) const
 }
 
 // GetPixel function adapted from http://sdl.beuc.net/sdl.wiki/Pixel_Access
-uint32_t Elite::Texture::GetPixel(SDL_Surface* surface, const uint64_t x, const uint64_t y)
+uint32_t Texture::GetPixel(SDL_Surface* surface, const uint64_t x, const uint64_t y)
 {
 	const int32_t bpp = surface->format->BytesPerPixel;
 
@@ -88,7 +88,7 @@ uint32_t Elite::Texture::GetPixel(SDL_Surface* surface, const uint64_t x, const 
 		return *reinterpret_cast<uint16_t*>(p);
 		break;
 	case 3:
-		if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+		if constexpr (SDL_BYTEORDER == SDL_BIG_ENDIAN)
 			return p[0] << 16 | p[1] << 8 | p[2];
 		else
 			return p[0] | p[1] << 8 | p[2] << 16;
@@ -102,7 +102,7 @@ uint32_t Elite::Texture::GetPixel(SDL_Surface* surface, const uint64_t x, const 
 #pragma endregion
 
 #pragma region D3D
-void Elite::Texture::LoadTexture(ID3D11Device* pDevice, SDL_Surface* pSurface)
+void Texture::LoadTexture(ID3D11Device* pDevice, SDL_Surface* pSurface)
 {
 	D3D11_TEXTURE2D_DESC desc;
 	desc.Width = pSurface->w;

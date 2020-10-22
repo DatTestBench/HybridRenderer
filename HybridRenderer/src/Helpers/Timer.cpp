@@ -1,8 +1,9 @@
 #include "pch.h"
-#include "ETimer.h"
-#include "SDL.h"
+#include <SDL.h>
+#include "Helpers/Timer.hpp"
 
-Elite::Timer::Timer()
+
+Timer::Timer()
 	: m_BaseTime{}
 	, m_PausedTime{}
 	, m_StopTime{}
@@ -23,7 +24,7 @@ Elite::Timer::Timer()
 {
 }
 
-void Elite::Timer::Reset()
+void Timer::Reset()
 {
 	const auto currentTime= SDL_GetPerformanceCounter();
 
@@ -35,7 +36,7 @@ void Elite::Timer::Reset()
 	m_IsStopped = false;
 }
 
-void Elite::Timer::Start()
+void Timer::Start()
 {
 	const auto startTime = SDL_GetPerformanceCounter();
 
@@ -49,7 +50,7 @@ void Elite::Timer::Start()
 	}
 }
 
-void Elite::Timer::Update()
+void Timer::Update()
 {
 	if (m_IsStopped)
 	{
@@ -86,7 +87,7 @@ void Elite::Timer::Update()
 	}
 }
 
-void Elite::Timer::Stop()
+void Timer::Stop()
 {
 	if (!m_IsStopped)
 	{

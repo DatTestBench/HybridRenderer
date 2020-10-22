@@ -22,115 +22,63 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="EMath.h">
+    <ClCompile Include="Geometry\Mesh.cpp">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EMathUtilities.h">
+    </ClCompile>
+    <ClCompile Include="Helpers\Timer.cpp">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EMatrix.h">
+    </ClCompile>
+    <ClCompile Include="Materials\MaterialManager.cpp">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EMatrix2.h">
+    </ClCompile>
+    <ClCompile Include="Materials\Texture.cpp">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EMatrix3.h">
+    </ClCompile>
+    <ClCompile Include="Rendering\Camera.cpp">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EMatrix4.h">
+    </ClCompile>
+    <ClCompile Include="Rendering\Renderer.cpp">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EPoint.h">
+    </ClCompile>
+    <ClCompile Include="Scene\SceneGraph.cpp">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EPoint2.h">
+    </ClCompile>
+    <ClCompile Include="main.cpp">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EPoint3.h">
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EPoint4.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EVector.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EVector2.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EVector3.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EVector4.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="ERenderer.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="ERGBColor.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
-    <ClInclude Include="ETimer.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
-    <ClInclude Include="pch.h" />
-    <ClInclude Include="EMaterialManager.h">
-      <Filter>Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="ESceneGraph.h">
-      <Filter>Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="ECamera.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
-    <ClInclude Include="EMeshParser.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
-    <ClInclude Include="ETexture.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
-    <ClInclude Include="EVertex.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
-    <ClInclude Include="EMaterial.h">
-      <Filter>Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="EMaterialFlat.h">
-      <Filter>Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="EMaterialMapped.h">
-      <Filter>Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="EMesh.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="EBRDF.h">
-      <Filter>Materials</Filter>
-    </ClInclude>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ERenderer.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="ETimer.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
-    <ClCompile Include="pch.cpp" />
-    <ClCompile Include="EMaterialManager.cpp">
-      <Filter>Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="ESceneGraph.cpp">
-      <Filter>Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="ECamera.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
-    <ClCompile Include="ETexture.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
-    <ClCompile Include="EMesh.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
+    <ClInclude Include="Geometry\Mesh.hpp" />
+    <ClInclude Include="Helpers\EMath.h" />
+    <ClInclude Include="Helpers\EMathUtilities.h" />
+    <ClInclude Include="Helpers\EMatrix.h" />
+    <ClInclude Include="Helpers\EMatrix2.h" />
+    <ClInclude Include="Helpers\EMatrix3.h" />
+    <ClInclude Include="Helpers\EMatrix4.h" />
+    <ClInclude Include="Helpers\EPoint.h" />
+    <ClInclude Include="Helpers\EPoint2.h" />
+    <ClInclude Include="Helpers\EPoint3.h" />
+    <ClInclude Include="Helpers\EPoint4.h" />
+    <ClInclude Include="Helpers\EVector.h" />
+    <ClInclude Include="Helpers\EVector2.h" />
+    <ClInclude Include="Helpers\EVector3.h" />
+    <ClInclude Include="Helpers\EVector4.h" />
+    <ClInclude Include="Helpers\MeshParser.hpp" />
+    <ClInclude Include="Helpers\RGBColor.hpp" />
+    <ClInclude Include="Helpers\Timer.hpp" />
+    <ClInclude Include="Helpers\Vertex.hpp" />
+    <ClInclude Include="Materials\BRDF.hpp" />
+    <ClInclude Include="Materials\Material.hpp" />
+    <ClInclude Include="Materials\MaterialFlat.hpp" />
+    <ClInclude Include="Materials\MaterialManager.hpp" />
+    <ClInclude Include="Materials\MaterialMapped.hpp" />
+    <ClInclude Include="Materials\Texture.hpp" />
+    <ClInclude Include="Rendering\Camera.hpp" />
+    <ClInclude Include="Rendering\Renderer.hpp" />
+    <ClInclude Include="Scene\SceneGraph.hpp" />
+    <ClInclude Include="pch.h" />
   </ItemGroup>
 </Project>

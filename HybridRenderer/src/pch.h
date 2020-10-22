@@ -17,5 +17,5 @@
 #include <d3dx11effect.h>
 
 //Elite headers
-#include "EMath.h"
-#include "ERGBColor.h"
+#include "Helpers/EMath.h"
+#include "Helpers/RGBColor.hpp"

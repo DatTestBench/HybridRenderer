@@ -1,13 +1,13 @@
 #include "pch.h"
 
 //Project includes
-#include "ERenderer.h"
-#include "EMaterialManager.h"
-#include "EMaterialMapped.h"
-#include "EMaterialFlat.h"
-#include "ECamera.h"
+#include "Rendering/Renderer.hpp"
+#include "Materials/MaterialManager.hpp"
+#include "Materials/MaterialMapped.hpp"
+#include "Materials/MaterialFlat.hpp"
+#include "Rendering/Camera.hpp"
 
-Elite::Renderer::Renderer(SDL_Window* pWindow)
+Renderer::Renderer(SDL_Window* pWindow)
 	: m_pWindow{ pWindow }
 	, m_Width{}
 	, m_Height{}
@@ -20,7 +20,7 @@ Elite::Renderer::Renderer(SDL_Window* pWindow)
 	SDL_GetWindowSize(pWindow, &width, &height);
 	m_Width = static_cast<uint32_t>(width);
 	m_Height = static_cast<uint32_t>(height);
-	m_pSceneGraph->SetCamera(FPoint3(0, 5, 65), m_Width, m_Height, 60.f);
+	m_pSceneGraph->SetCamera(Elite::FPoint3(0, 5, 65), m_Width, m_Height, 60.f);
 
 	/*Software*/
 	m_pFrontBuffer = SDL_GetWindowSurface(pWindow);
@@ -47,11 +47,11 @@ Elite::Renderer::Renderer(SDL_Window* pWindow)
 	MaterialManager::GetInstance()->AddMaterial(new MaterialMapped(m_pDevice, L"./Resources/Shaders/PosCol3D.fx", "./Resources/Textures/vehicle_diffuse.png", "./Resources/Textures/vehicle_normal.png", "./Resources/Textures/vehicle_gloss.png", "./Resources/Textures/vehicle_specular.png", 25.f, 1, false));
 	MaterialManager::GetInstance()->AddMaterial(new MaterialFlat(m_pDevice, L"./Resources/Shaders/FlatTransparancy.fx", "./Resources/Textures/fireFX_diffuse.png", 2, true));
 	m_pSceneGraph->AddScene(0);
-	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/vehicle.obj", MaterialManager::GetInstance()->GetMaterial(1), FPoint3(0, 0, 0)), 0);
-	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/fireFX.obj", MaterialManager::GetInstance()->GetMaterial(2), FPoint3(0, 0, 0)), 0);
+	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/vehicle.obj", MaterialManager::GetInstance()->GetMaterial(1), Elite::FPoint3(0, 0, 0)), 0);
+	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/fireFX.obj", MaterialManager::GetInstance()->GetMaterial(2), Elite::FPoint3(0, 0, 0)), 0);
 }
 
-Elite::Renderer::~Renderer()
+Renderer::~Renderer()
 {
 	delete m_pDepthBuffer;
 
@@ -91,13 +91,13 @@ Elite::Renderer::~Renderer()
 		m_pDXGIFactory->Release();
 }
 
-void Elite::Renderer::Render() const
+void Renderer::Render() const
 {
 
-	RGBColor clearColor{};
+	Elite::RGBColor clearColor{};
 	switch (m_pSceneGraph->GetRenderSystem())
 	{
-	case Elite::RenderSystem::Software:
+	case RenderSystem::Software:
 		clearColor = { 128.f, 128.f, 128.f };
 		SDL_LockSurface(m_pBackBuffer);
 		std::fill(m_pDepthBuffer, m_pDepthBuffer + static_cast<uint64_t>(m_Width * m_Height), FLT_MAX);
@@ -116,12 +116,12 @@ void Elite::Renderer::Render() const
 		SDL_BlitSurface(m_pBackBuffer, nullptr, m_pFrontBuffer, nullptr);
 		SDL_UpdateWindowSurface(m_pWindow);
 		break;
-	case Elite::RenderSystem::D3D:
+	case RenderSystem::D3D:
 		if (!m_IsInitialized)
 			return;
 
 		//Clear Buffers
-		clearColor = RGBColor(0.f, 0.f, 0.3f);
+		clearColor = Elite::RGBColor(0.f, 0.f, 0.3f);
 		m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, &clearColor.r);
 		m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -139,7 +139,7 @@ void Elite::Renderer::Render() const
 	}
 }
 
-HRESULT Elite::Renderer::InitializeDirectX()
+HRESULT Renderer::InitializeDirectX()
 {
 	//Create Device and Device context, using hardware acceleration
 	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
@@ -147,7 +147,7 @@ HRESULT Elite::Renderer::InitializeDirectX()
 #if defined(DEBUG) || defined(_DEBUG)
 	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
-	HRESULT result = D3D11CreateDevice(0, D3D_DRIVER_TYPE_HARDWARE, 0, createDeviceFlags, 0, 0, D3D11_SDK_VERSION, &m_pDevice, &featureLevel, &m_pDeviceContext);
+	HRESULT result = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, nullptr, 0, D3D11_SDK_VERSION, &m_pDevice, &featureLevel, &m_pDeviceContext);
 	if (FAILED(result))
 		return result;
 
