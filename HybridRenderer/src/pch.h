@@ -16,6 +16,8 @@
 #include <d3dcompiler.h>
 #include <d3dx11effect.h>
 
+#include <glm/glm.hpp>
+
 //Elite headers
 #include "Helpers/EMath.h"
 #include "Helpers/RGBColor.hpp"

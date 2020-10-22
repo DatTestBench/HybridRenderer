@@ -1,0 +1,5 @@
+﻿#ifndef GENERAL_HELPERS_HPP
+#define GENERAL_HELPERS_HPP
+
+
+#endif // !GENERAL_HELPERS_HPP

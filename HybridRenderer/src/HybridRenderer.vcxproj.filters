@@ -80,5 +80,6 @@
     <ClInclude Include="Rendering\Renderer.hpp" />
     <ClInclude Include="Scene\SceneGraph.hpp" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Helpers\GeneralHelpers.hpp" />
   </ItemGroup>
 </Project>

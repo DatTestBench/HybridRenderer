@@ -52,7 +52,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -90,7 +90,9 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Materials\MaterialManager.cpp" />
     <ClCompile Include="Materials\Texture.cpp" />
-    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Scene\SceneGraph.cpp" />
@@ -111,6 +113,7 @@
     <ClInclude Include="Helpers\EVector2.h" />
     <ClInclude Include="Helpers\EVector3.h" />
     <ClInclude Include="Helpers\EVector4.h" />
+    <ClInclude Include="Helpers\GeneralHelpers.hpp" />
     <ClInclude Include="Helpers\MeshParser.hpp" />
     <ClInclude Include="Helpers\RGBColor.hpp" />
     <ClInclude Include="Helpers\Timer.hpp" />

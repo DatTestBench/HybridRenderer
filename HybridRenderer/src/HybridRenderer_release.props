@@ -8,10 +8,10 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)/inc/vld;$(SolutionDir)/inc/SDL2;$(SolutionDir)/inc/SDL2_Image;$(SolutionDir)/inc/dx11effects;$(SolutionDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)inc/glm;$(SolutionDir)inc/vld;$(SolutionDir)inc/SDL2;$(SolutionDir)inc/SDL2_Image;$(SolutionDir)inc/dx11effects;$(SolutionDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)/lib/vld/Win64;$(SolutionDir)/lib/SDL2/x64;$(SolutionDir)/lib/SDL2_Image/x64;$(SolutionDir)/lib/dx11effects/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib/vld/Win64;$(SolutionDir)lib/SDL2/x64;$(SolutionDir)lib/SDL2_Image/x64;$(SolutionDir)lib/dx11effects/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;vld.lib;dxgi.lib;d3d11.lib;d3dcompiler.lib;dx11effects.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
