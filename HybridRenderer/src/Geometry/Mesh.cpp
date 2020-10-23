@@ -75,8 +75,6 @@ bool Mesh::Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float*
     for (uint32_t i = 0; i < m_IndexBuffer.size() - 2; i += increment)
     {
         if (AssembleTriangle(i, backBuffer, backBufferPixels, depthBuffer, width, height))
-        const auto triHit = AssembleTriangle(i, backBuffer, backBufferPixels, depthBuffer, width, height);
-        if (triHit)
         {
             meshHit = true;
         }
@@ -85,7 +83,7 @@ bool Mesh::Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float*
     return meshHit;
 }
 
-bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height)
+bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, const uint32_t width, const uint32_t height)
 {
     VertexOutput v0{};
     VertexOutput v1{};
@@ -94,34 +92,30 @@ bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* bac
     switch (m_Topology)
     {
     case PrimitiveTopology::TriangleList:
-        v0 = m_SSVertices[m_IndexBuffer[idx]];
+        v0 = m_SSVertices[m_IndexBuffer[static_cast<uint64_t>(idx)]];
 
         if (v0.pos.z < 0)
             return false;
-        v1 = m_SSVertices[m_IndexBuffer[idx]];
+        v1 = m_SSVertices[m_IndexBuffer[static_cast<uint64_t>(idx) + 1]];
 
         if (v1.pos.z < 0)
             return false;
-        v2 = m_SSVertices[m_IndexBuffer[idx]];
+        v2 = m_SSVertices[m_IndexBuffer[static_cast<uint64_t>(idx) + 2]];
 
         if (v2.pos.z < 0)
             return false;
         break;
     case PrimitiveTopology::TriangleStrip:
-        if (m_IndexBuffer[idx] == m_IndexBuffer[idx + 1]
-            || m_IndexBuffer[idx + 1] == m_IndexBuffer[idx + 2]
-            || m_IndexBuffer[idx + 2] == m_IndexBuffer[idx])
+        if (m_IndexBuffer[idx] == m_IndexBuffer[static_cast<uint64_t>(idx) + 1] || m_IndexBuffer[static_cast<uint64_t>(idx) + 1] == m_IndexBuffer[static_cast<uint64_t>(idx) + 2] || m_IndexBuffer[
+            static_cast<uint64_t>(idx) + 2] == m_IndexBuffer[idx])
             return false;
-        
         v0 = m_SSVertices[m_IndexBuffer[idx]];
         if (v0.pos.z < 0)
             return false;
-        
-        v1 = m_SSVertices[m_IndexBuffer[idx + 1 + idx % 2]];
+        v1 = m_SSVertices[m_IndexBuffer[static_cast<int64_t>(idx) + 1 + static_cast<uint64_t>(idx % 2)]];
         if (v1.pos.z < 0)
             return false;
-        
-        v2 = m_SSVertices[m_IndexBuffer[idx + 2 - idx % 2]];
+        v2 = m_SSVertices[m_IndexBuffer[static_cast<uint64_t>(idx) + 2 - static_cast<uint64_t>(idx % 2)]];
         if (v2.pos.z < 0)
             return false;
         break;
@@ -131,7 +125,9 @@ bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* bac
 
     //Frustrum culling - Cut my ship into pieces...
     if (v0.culled || v1.culled || v2.culled)
+    {
         return false;
+    }
 
     float w0{};
     float w1{};
@@ -154,7 +150,6 @@ bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* bac
                 depth = std::get<1>(triResult);
                 auto linearInterpolatedDepth = std::get<2>(triResult);
 
-
                 w0 = std::get<3>(triResult).x;
                 w1 = std::get<3>(triResult).y;
                 w2 = std::get<3>(triResult).z;
@@ -176,9 +171,9 @@ bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* bac
                     depthBuffer[c + (r * width)] = depth;
 
                     backBufferPixels[c + (r * width)] = SDL_MapRGB(backBuffer->format,
-                                                                   static_cast<uint8_t>(finalColor.r * 255),
-                                                                   static_cast<uint8_t>(finalColor.g * 255),
-                                                                   static_cast<uint8_t>(finalColor.b * 255));
+                                                                 static_cast<uint8_t>(finalColor.r * 255),
+                                                                 static_cast<uint8_t>(finalColor.g * 255),
+                                                                 static_cast<uint8_t>(finalColor.b * 255));
                 }
             }
         }
