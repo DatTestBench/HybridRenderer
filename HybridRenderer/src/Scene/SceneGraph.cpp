@@ -86,10 +86,10 @@ void SceneGraph::ToggleRenderType()
     std::cout << "Rendertype changed to ";
     switch (m_RenderType)
     {
-    case RenderType::Color:
+    case Color:
         std::cout << "show color\n";
         break;
-    case RenderType::Depth:
+    case Depth:
         std::cout << "show depthbuffer\n";
         break;
     default:
@@ -99,7 +99,7 @@ void SceneGraph::ToggleRenderType()
 
 void SceneGraph::ToggleRenderSystem()
 {
-    m_RenderSystem = (m_RenderSystem == RenderSystem::RenderSystemSize - 1) ? static_cast<RenderSystem>(0) : static_cast<RenderSystem>(m_RenderSystem + 1);
+    m_RenderSystem = (m_RenderSystem == RenderSystemSize - 1) ? static_cast<RenderSystem>(0) : static_cast<RenderSystem>(m_RenderSystem + 1);
     std::cout << "Rendersystem changed to ";
     switch (m_RenderSystem)
     {
