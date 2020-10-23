@@ -75,6 +75,8 @@ bool Mesh::Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float*
     for (uint32_t i = 0; i < m_IndexBuffer.size() - 2; i += increment)
     {
         if (AssembleTriangle(i, backBuffer, backBufferPixels, depthBuffer, width, height))
+        const auto triHit = AssembleTriangle(i, backBuffer, backBufferPixels, depthBuffer, width, height);
+        if (triHit)
         {
             meshHit = true;
         }
@@ -83,11 +85,7 @@ bool Mesh::Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float*
     return meshHit;
 }
 
-<<<<<<< Updated upstream
-bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, const uint32_t width, const uint32_t height)
-=======
 bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height)
->>>>>>> Stashed changes
 {
     VertexOutput v0{};
     VertexOutput v1{};
@@ -178,15 +176,9 @@ bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* bac
                     depthBuffer[c + (r * width)] = depth;
 
                     backBufferPixels[c + (r * width)] = SDL_MapRGB(backBuffer->format,
-<<<<<<< Updated upstream
-                                                                 static_cast<uint8_t>(finalColor.r * 255),
-                                                                 static_cast<uint8_t>(finalColor.g * 255),
-                                                                 static_cast<uint8_t>(finalColor.b * 255));
-=======
                                                                    static_cast<uint8_t>(finalColor.r * 255),
                                                                    static_cast<uint8_t>(finalColor.g * 255),
                                                                    static_cast<uint8_t>(finalColor.b * 255));
->>>>>>> Stashed changes
                 }
             }
         }
