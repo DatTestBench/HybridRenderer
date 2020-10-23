@@ -3,9 +3,10 @@
 #include <SDL_image.h>
 
 Texture::Texture(ID3D11Device* pDevice, const std::string& filePath)
-	: m_pTexture{ nullptr }
-	, m_pTextureResourceView{ nullptr }
-	, m_pSurface{ IMG_Load(filePath.c_str()) }
+	: m_pSurface(IMG_Load(filePath.c_str()))
+	, m_pTexture(nullptr)
+	, m_pTextureResourceView(nullptr)
+
 {
 	LoadTexture(pDevice, m_pSurface);
 }
@@ -30,7 +31,7 @@ Elite::RGBColor Texture::Sample(const Elite::FVector2& uv) const
 	remappedUV.y = Elite::Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
 	SDL_Color color;
 
-	SDL_GetRGB(GetPixel(m_pSurface, int(remappedUV.x), int(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b);
+	SDL_GetRGB(GetPixel(m_pSurface, static_cast<uint32_t>(remappedUV.x), static_cast<uint32_t>(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b);
 
 	return Elite::RGBColor(color.r / 255.f, color.g / 255.f, color.b / 255.f);
 }
@@ -42,7 +43,7 @@ Elite::FVector4 Texture::Sample4(const Elite::FVector2& uv) const
 	remappedUV.y = Elite::Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
 	SDL_Color color;
 
-	SDL_GetRGBA(GetPixel(m_pSurface, int(remappedUV.x), int(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b, &color.a);
+	SDL_GetRGBA(GetPixel(m_pSurface, static_cast<uint32_t>(remappedUV.x), static_cast<uint32_t>(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b, &color.a);
 
 	return Elite::FVector4(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
 }
@@ -75,7 +76,7 @@ float Texture::SampleF(const Elite::FVector2& uv, const int32_t component) const
 }
 
 // GetPixel function adapted from http://sdl.beuc.net/sdl.wiki/Pixel_Access
-uint32_t Texture::GetPixel(SDL_Surface* surface, const uint64_t x, const uint64_t y)
+uint32_t Texture::GetPixel(SDL_Surface* surface, const uint32_t x, const uint32_t y)
 {
 	const int32_t bpp = surface->format->BytesPerPixel;
 

@@ -1,11 +1,5 @@
-/*=============================================================================*/
-// Copyright 2017-2019 Elite Engine
-// Authors: Matthieu Delaere
-/*=============================================================================*/
-// ERenderer.h: class that holds the surface to render too + DirectX initialization.
-/*=============================================================================*/
-#ifndef ELITE_RAYTRACING_RENDERER
-#define	ELITE_RAYTRACING_RENDERER
+#ifndef RENDERER_HPP
+#define	RENDERER_HPP
 
 #include <cstdint>
 
@@ -55,4 +49,4 @@ private:
 };
 
 
-#endif
+#endif // !RENDERER_HPP

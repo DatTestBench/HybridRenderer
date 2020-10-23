@@ -53,7 +53,7 @@ Renderer::Renderer(SDL_Window* pWindow)
 
 Renderer::~Renderer()
 {
-	delete m_pDepthBuffer;
+	SafeDelete(m_pDepthBuffer);
 
 	if (m_pRenderTargetView)
 		m_pRenderTargetView->Release();
@@ -100,11 +100,12 @@ void Renderer::Render() const
 	case RenderSystem::Software:
 		clearColor = { 128.f, 128.f, 128.f };
 		SDL_LockSurface(m_pBackBuffer);
-		std::fill(m_pDepthBuffer, m_pDepthBuffer + static_cast<uint64_t>(m_Width * m_Height), FLT_MAX);
-		std::fill(m_pBackBufferPixels, m_pBackBufferPixels + static_cast<uint64_t>(m_Width * m_Height), SDL_MapRGB(m_pBackBuffer->format,
-			static_cast<uint8_t>(clearColor.r),
-			static_cast<uint8_t>(clearColor.g),
-			static_cast<uint8_t>(clearColor.b)));
+
+		std::fill_n(m_pDepthBuffer, static_cast<uint64_t>(m_Width * m_Height), FLT_MAX);
+		std::fill_n(m_pBackBufferPixels, static_cast<uint64_t>(m_Width * m_Height), SDL_MapRGB(m_pBackBuffer->format,
+            static_cast<uint8_t>(clearColor.r),
+            static_cast<uint8_t>(clearColor.g),
+            static_cast<uint8_t>(clearColor.b)));
 
 		for (auto& o : m_pSceneGraph->GetCurrentSceneObjects())
 		{
@@ -116,7 +117,7 @@ void Renderer::Render() const
 		SDL_BlitSurface(m_pBackBuffer, nullptr, m_pFrontBuffer, nullptr);
 		SDL_UpdateWindowSurface(m_pWindow);
 		break;
-	case RenderSystem::D3D:
+	case D3D:
 		if (!m_IsInitialized)
 			return;
 

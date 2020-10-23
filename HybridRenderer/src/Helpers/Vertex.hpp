@@ -17,10 +17,10 @@ struct VertexInput
     VertexInput() = default;
 
     VertexInput(const Elite::FPoint3& position, const Elite::FVector2& uv, const Elite::FVector3& normal, const Elite::FVector3& tangent = Elite::FVector3(0, 0, 0))
-        : pos{position},
-          uv{uv},
-          normal{normal},
-          tangent{tangent}
+        : pos(position),
+          uv(uv),
+          normal(normal),
+          tangent(tangent)
     {
     }
 };

@@ -48,5 +48,4 @@ private:
     bool m_ForceElapsedUpperBound;
 };
 
-
 #endif // !TIMER_HPP

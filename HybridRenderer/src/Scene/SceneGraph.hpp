@@ -41,7 +41,7 @@ public:
     static void ChangeCameraResolution(uint32_t width, uint32_t height);
 
     //Workers
-    void Update(float dT);
+    void Update(float dT) const;
     void IncreaseScene();
     void DecreaseScene();
     void ToggleRenderType();

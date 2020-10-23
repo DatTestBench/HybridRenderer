@@ -31,7 +31,7 @@ public:
         std::vector<std::string> vInput;
         std::ifstream input;
         input.open(fileName, std::ios::in | std::ios::binary);
-        int idx{};
+        
         if (input.is_open())
         {
             for (std::string line; std::getline(input, line);)
@@ -40,8 +40,7 @@ public:
             }
             input.close();
         }
-
-        idx = 0;
+        
         const std::regex tokenCheck("^([^\\s]*)");
         for (auto& i : vInput)
         {

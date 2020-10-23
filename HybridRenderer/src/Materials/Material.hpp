@@ -3,8 +3,6 @@
 
 //This is the "EFFECT". Holding data needed for the required DXEffect (the "SHADER")
 
-#include "pch.h"
-
 //General includes
 #include <iostream>
 #include <string>
@@ -17,10 +15,10 @@
 class Material
 {
 public:
-    Material(ID3D11Device* pDevice, const std::wstring& effectFile, const int id, const bool hasTransparency = false)
-        : m_Id{id},
-          m_HasTransparency{hasTransparency},
-          m_pEffect{LoadEffect(pDevice, effectFile)}
+    Material(ID3D11Device* pDevice, const std::wstring& effectFile, const uint32_t id, const bool hasTransparency = false)
+        : m_Id(id),
+          m_HasTransparency(hasTransparency),
+          m_pEffect(LoadEffect(pDevice, effectFile))
     {
         m_pTechnique = m_pEffect->GetTechniqueByName("DefaultTechnique");
         if (!m_pTechnique->IsValid())
@@ -79,7 +77,7 @@ public:
 
 protected:
     /*General*/
-    int m_Id;
+    uint32_t m_Id;
     bool m_HasTransparency;
     /*D3D*/
     ID3DX11Effect* m_pEffect; // "SHADER"

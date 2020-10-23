@@ -43,7 +43,7 @@ void SceneGraph::ChangeCameraResolution(const uint32_t width, const uint32_t hei
 #pragma endregion
 
 #pragma region Workers
-void SceneGraph::Update(const float dT)
+void SceneGraph::Update(const float dT) const
 {
     float rotationSpeed;
     if (m_AreObjectsRotating)

@@ -74,8 +74,7 @@ bool Mesh::Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float*
 
     for (uint32_t i = 0; i < m_IndexBuffer.size() - 2; i += increment)
     {
-        const auto triHit = AssembleTriangle(i, backBuffer, backBufferPixels, depthBuffer, width, height);
-        if (triHit)
+        if (AssembleTriangle(i, backBuffer, backBufferPixels, depthBuffer, width, height))
         {
             meshHit = true;
         }
@@ -84,7 +83,7 @@ bool Mesh::Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float*
     return meshHit;
 }
 
-bool Mesh::AssembleTriangle(int idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height)
+bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, const uint32_t width, const uint32_t height)
 {
     VertexOutput v0{};
     VertexOutput v1{};
@@ -141,9 +140,9 @@ bool Mesh::AssembleTriangle(int idx, SDL_Surface* backBuffer, uint32_t* backBuff
     Elite::RGBColor finalColor{};
     auto depth = FLT_MAX;
 
-    for (uint32_t r = static_cast<uint32_t>(boundingBoxMin.y); r < static_cast<uint32_t>(boundingBoxMax.y); ++r)
+    for (auto r = static_cast<uint32_t>(boundingBoxMin.y); r < static_cast<uint32_t>(boundingBoxMax.y); ++r)
     {
-        for (uint32_t c = static_cast<uint32_t>(boundingBoxMin.x); c < static_cast<uint32_t>(boundingBoxMax.x); ++c)
+        for (auto c = static_cast<uint32_t>(boundingBoxMin.x); c < static_cast<uint32_t>(boundingBoxMax.x); ++c)
         {
             auto triResult = IsPointInTriangle(v0, v1, v2, Elite::FPoint2(static_cast<float>(c), static_cast<float>(r)));
             if (std::get<0>(triResult))
@@ -157,7 +156,7 @@ bool Mesh::AssembleTriangle(int idx, SDL_Surface* backBuffer, uint32_t* backBuff
 
                 if (depth < depthBuffer[c + (r * width)])
                 {
-                    VertexOutput vInterpolated = Interpolate(v0, v1, v2, w0, w1, w2, linearInterpolatedDepth);
+                    auto vInterpolated = Interpolate(v0, v1, v2, w0, w1, w2, linearInterpolatedDepth);
 
                     switch (SceneGraph::GetInstance()->GetRenderSystem())
                     {
@@ -169,9 +168,9 @@ bool Mesh::AssembleTriangle(int idx, SDL_Surface* backBuffer, uint32_t* backBuff
                         break;
                     }
 
-                    depthBuffer[c + r * width] = depth;
+                    depthBuffer[c + (r * width)] = depth;
 
-                    backBufferPixels[c + r * width] = SDL_MapRGB(backBuffer->format,
+                    backBufferPixels[c + (r * width)] = SDL_MapRGB(backBuffer->format,
                                                                  static_cast<uint8_t>(finalColor.r * 255),
                                                                  static_cast<uint8_t>(finalColor.g * 255),
                                                                  static_cast<uint8_t>(finalColor.b * 255));
@@ -258,8 +257,8 @@ std::tuple<Elite::FVector2, Elite::FVector2> Mesh::MakeBoundingBox(const VertexO
     boundingBoxMin.x = std::max(boundingBoxMin.x - 1, 0.f);
     boundingBoxMin.y = std::max(boundingBoxMin.y - 1, 0.f);
 
-    boundingBoxMax.x = std::min(boundingBoxMax.x + 1, float(maxScreenWidth - 1));
-    boundingBoxMax.y = std::min(boundingBoxMax.y + 1, float(maxScreenHeight - 1));
+    boundingBoxMax.x = std::min(boundingBoxMax.x + 1, static_cast<float>(maxScreenWidth - 1));
+    boundingBoxMax.y = std::min(boundingBoxMax.y + 1, static_cast<float>(maxScreenHeight - 1));
 
     return std::make_tuple(boundingBoxMin, boundingBoxMax);
 }

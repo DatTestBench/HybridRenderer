@@ -1,5 +1,5 @@
-#ifndef ELITE_MATERIAL_MAPPED
-#define ELITE_MATERIAL_MAPPED
+#ifndef MATERIAL_MAPPED_HPP
+#define MATERIAL_MAPPED_HPP
 //Material with all 4 maps, diffuse, normal, glossiness, specular
 
 //Project includes
@@ -10,14 +10,15 @@
 class MaterialMapped final : public Material
 {
 public:
-    MaterialMapped(ID3D11Device* pDevice, const std::wstring& effectPath, const std::string& diffusePath, const std::string& normalPath, const std::string& glossPath, const std::string& specularPath,
-                   const float shininess, const int id, bool hasTransparency = false)
-        : Material{pDevice, effectPath, id, hasTransparency},
-          m_pDiffuseMap{new Texture(pDevice, diffusePath)},
-          m_pNormalMap{new Texture(pDevice, normalPath)},
-          m_pGlossinessMap{new Texture(pDevice, glossPath)},
-          m_pSpecularMap{new Texture(pDevice, specularPath)},
-          m_Shininess{shininess}
+    MaterialMapped(ID3D11Device* pDevice, const std::wstring& effectPath, const std::string& diffusePath,
+                   const std::string& normalPath, const std::string& glossPath, const std::string& specularPath,
+                   const float shininess, const uint32_t id, const bool hasTransparency = false)
+        : Material(pDevice, effectPath, id, hasTransparency),
+          m_pDiffuseMap(new Texture(pDevice, diffusePath)),
+          m_pNormalMap(new Texture(pDevice, normalPath)),
+          m_pGlossinessMap(new Texture(pDevice, glossPath)),
+          m_pSpecularMap(new Texture(pDevice, specularPath)),
+          m_Shininess(shininess)
     {
         m_pDiffuseMapVariable = m_pEffect->GetVariableByName("gDiffuseMap")->AsShaderResource();
         if (!m_pDiffuseMapVariable->IsValid())
@@ -71,21 +72,18 @@ public:
             m_pDiffuseMapVariable->Release();
 
         //Deleting software maps
-        if (m_pDiffuseMap != nullptr)
-            delete m_pDiffuseMap;
-        if (m_pNormalMap != nullptr)
-            delete m_pNormalMap;
-        if (m_pGlossinessMap != nullptr)
-            delete m_pGlossinessMap;
-        if (m_pSpecularMap != nullptr)
-            delete m_pSpecularMap;
+        SafeDelete(m_pDiffuseMap);
+        SafeDelete(m_pNormalMap);
+        SafeDelete(m_pGlossinessMap);
+        SafeDelete(m_pSpecularMap);
     }
 
     DEL_ROF(MaterialMapped)
 
     //Workers
     /*Software*/
-    Elite::RGBColor Shade(const VertexOutput& v, const Elite::FVector3& lightDirection, const Elite::FVector3& viewDirection, const Elite::FVector3& normal) const override
+    Elite::RGBColor Shade(const VertexOutput& v, const Elite::FVector3& lightDirection,
+                          const Elite::FVector3& viewDirection, const Elite::FVector3& normal) const override
     {
         Elite::RGBColor tempColor = {0, 0, 0};
 
@@ -111,9 +109,10 @@ public:
             m_pSpecularMapVariable->SetResource(m_pSpecularMap->GetTextureView());
     }
 
-    void SetMatrices(const Elite::FMatrix4& projectionMat, const Elite::FMatrix4& inverseViewMat /*This is the OBN*/, const Elite::FMatrix4& worldMat) override
+    void SetMatrices(const Elite::FMatrix4& projectionMat, const Elite::FMatrix4& inverseViewMat /*This is the OBN*/,
+                     const Elite::FMatrix4& worldMat) override
     {
-        auto worldViewProjection = projectionMat * Elite::Inverse(inverseViewMat) * worldMat;
+        auto worldViewProjection = projectionMat * Inverse(inverseViewMat) * worldMat;
         auto worldMatrix = worldMat;
         auto inverseViewMatrix = inverseViewMat;
 
@@ -146,11 +145,11 @@ public:
 
 private:
     /*General*/
-    float m_Shininess;
     Texture* m_pDiffuseMap;
     Texture* m_pNormalMap;
     Texture* m_pGlossinessMap;
     Texture* m_pSpecularMap;
+    float m_Shininess;
 
     /*D3D*/
     ID3DX11EffectShaderResourceVariable* m_pDiffuseMapVariable;
@@ -162,4 +161,4 @@ private:
     ID3DX11EffectMatrixVariable* m_pMatInverseViewVariable;
     ID3DX11EffectScalarVariable* m_pShininessVariable;
 };
-#endif // !ELITE_MATERIAL_MAPPED
+#endif // !MATERIAL_MAPPED_HPP

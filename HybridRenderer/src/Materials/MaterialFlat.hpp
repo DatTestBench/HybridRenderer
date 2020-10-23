@@ -12,10 +12,10 @@ public:
     MaterialFlat(ID3D11Device* pDevice,
                  const std::wstring& effectPath,
                  const std::string diffusePath,
-                 const int id,
+                 const uint32_t id,
                  const bool hasTransparency = false)
-        : Material{pDevice, effectPath, id, hasTransparency},
-          m_pDiffuseMap{new Texture(pDevice, diffusePath)}
+        : Material(pDevice, effectPath, id, hasTransparency),
+          m_pDiffuseMap(new Texture(pDevice, diffusePath))
     {
         m_pDiffuseMapVariable = m_pEffect->GetVariableByName("gDiffuseMap")->AsShaderResource();
         if (!m_pDiffuseMapVariable->IsValid())

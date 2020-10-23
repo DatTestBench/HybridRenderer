@@ -1,10 +1,11 @@
-#ifndef ELITE_TEXTURE
-#define ELITE_TEXTURE
+#ifndef TEXTURE_HPP
+#define TEXTURE_HPP
+
+//General Includes
+#include <SDL.h>
+#include <string>
 
 //Project includes
-#include <SDL.h>
-#include <SDL_image.h>
-#include <string>
 #include "Helpers/RGBColor.hpp"
 #include "Helpers/EMath.h"
 
@@ -28,7 +29,7 @@ private:
     /*Software*/
     SDL_Surface* m_pSurface;
 
-    static uint32_t GetPixel(SDL_Surface* surface, uint64_t x, uint64_t y);
+    static uint32_t GetPixel(SDL_Surface* surface, uint32_t x, uint32_t y);
 
     /*D3D*/
     ID3D11Texture2D* m_pTexture;

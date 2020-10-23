@@ -10,6 +10,7 @@
 //General includes
 #include <vector>
 #include <string>
+
 //Project includes
 #include "Helpers/EMath.h"
 #include "Materials/Texture.hpp"
@@ -58,7 +59,7 @@ public:
 
 private:
     /*General*/
-    int m_MaterialId;
+    uint32_t m_MaterialId;
     Elite::FMatrix4 m_WorldMatrix;
     Elite::FPoint3 m_Origin;
     float m_RotationAngle;
@@ -69,7 +70,7 @@ private:
     std::vector<VertexInput> m_VertexBuffer;
     std::vector<VertexOutput> m_SSVertices;
 
-    bool AssembleTriangle(int idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height);
+    bool AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height);
     std::tuple<bool, float, float, Elite::FVector3> IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const Elite::FPoint2& pixelPoint) const noexcept;
     Elite::RGBColor PixelShading(const VertexOutput& v) const noexcept;
     std::tuple<Elite::FVector2, Elite::FVector2> MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, uint32_t maxScreenWidth = INT_MAX,

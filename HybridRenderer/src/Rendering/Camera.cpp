@@ -2,11 +2,10 @@
 #include "Rendering/Camera.hpp"
 #include "Geometry/Mesh.hpp"
 #include <SDL.h>
-#include <iostream>
 
 Camera::Camera(const Elite::FPoint3& origin, const uint32_t windowWidth, const uint32_t windowHeight, const float fovD, const float nearPlane, const float farPlane)
     : m_Origin{origin},
-      m_RenderSystem{RenderSystem::Software},
+      m_RenderSystem{Software},
       m_MovementSensitivity{60.f},
       m_RotationSensitivity{0.5f},
       m_Pitch{},
@@ -199,7 +198,7 @@ void Camera::MakeScreenSpace(Mesh* pMesh) const
 {
     std::vector<VertexOutput> sSVertices;
 
-    const auto viewProjWorldMatrix = m_ProjectionMatrix * Elite::Inverse(m_LookAt) * pMesh->GetWorld();
+    const auto viewProjWorldMatrix = m_ProjectionMatrix * Inverse(m_LookAt) * pMesh->GetWorld();
 
     for (auto& v : pMesh->GetVertices())
     {
@@ -215,7 +214,7 @@ void Camera::MakeScreenSpace(Mesh* pMesh) const
         sSV.pos.y /= sSV.pos.w;
         sSV.pos.z /= sSV.pos.w;
 
-        sSV.viewDirection = Elite::GetNormalized((Elite::FMatrix3(pMesh->GetWorld()) * v.pos) - m_Origin);
+        sSV.viewDirection = GetNormalized((Elite::FMatrix3(pMesh->GetWorld()) * v.pos) - m_Origin);
         if (sSV.pos.x < -1 || sSV.pos.x > 1 || sSV.pos.y < -1 || sSV.pos.y > 1 || sSV.pos.z < 0 || sSV.pos.z > 1)
         {
             sSV.culled = true;
