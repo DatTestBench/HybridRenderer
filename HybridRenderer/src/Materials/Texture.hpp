@@ -13,10 +13,7 @@ class Texture
 public:
     Texture(ID3D11Device* pDevice, const std::string& filePath);
     ~Texture();
-    Texture(const Texture&) = delete;
-    Texture& operator=(const Texture&) = delete;
-    Texture(Texture&&) = delete;
-    Texture& operator=(Texture&&) = delete;
+    DEL_ROF(Texture)
 
     /*Software*/
     Elite::RGBColor Sample(const Elite::FVector2& uv) const;
@@ -25,7 +22,7 @@ public:
     float SampleF(const Elite::FVector2& uv, int component = 0) const;
 
     /*D3D*/
-    ID3D11ShaderResourceView* GetTextureView() const { return m_pTextureResourceView; }
+    [[nodiscard]] constexpr auto GetTextureView() const noexcept -> ID3D11ShaderResourceView* { return m_pTextureResourceView; }
 private:
 
     /*Software*/

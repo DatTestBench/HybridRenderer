@@ -21,10 +21,7 @@ public:
     explicit Renderer(SDL_Window* pWindow);
     ~Renderer();
 
-    Renderer(const Renderer&) = delete;
-    Renderer(Renderer&&) noexcept = delete;
-    Renderer& operator=(const Renderer&) = delete;
-    Renderer& operator=(Renderer&&) noexcept = delete;
+    DEL_ROF(Renderer)
 
     void Render() const;
 

@@ -7,6 +7,7 @@
 
 //Project includes
 #include "Helpers/Timer.hpp"
+#include "Materials/MaterialManager.hpp"
 #include "Rendering/Renderer.hpp"
 #include "Scene/SceneGraph.hpp"
 #include "Rendering/Camera.hpp"

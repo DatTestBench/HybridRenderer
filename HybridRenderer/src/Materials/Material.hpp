@@ -45,10 +45,7 @@ public:
             m_pEffect->Release();
     }
 
-    Material(const Material&) = delete;
-    Material& operator=(const Material&) = delete;
-    Material(Material&&) = delete;
-    Material& operator=(Material&&) = delete;
+    DEL_ROF(Material)
 
     //Workers
     /*Software*/
@@ -67,17 +64,18 @@ public:
 
     //Getters
     /*General*/
-    int GetId() const { return m_Id; }
-    bool HasTransparency() const { return m_HasTransparency; }
+    [[nodiscard]] constexpr auto GetId() const noexcept -> int { return m_Id; }
+    [[nodiscard]] constexpr auto HasTransparency() const noexcept -> bool { return m_HasTransparency; }
 
     /*Software*/
-    virtual Elite::FVector3 GetMappedNormal(const VertexOutput& v) const { return v.normal; }
+    [[nodiscard]] virtual auto GetMappedNormal(const VertexOutput& v) const noexcept -> Elite::FVector3 { return v.normal; }
 
     /*D3D*/
-    ID3DX11Effect* GetEffect() const { return m_pEffect; }
-    ID3DX11EffectTechnique* GetTechnique() const { return m_pTechnique; }
-    ID3DX11EffectMatrixVariable* GetWorldViewProjMat() const { return m_pMatWorldViewProjVariable; }
-    ID3DX11EffectScalarVariable* GetSamplerType() const { return m_pSamplerVariable; }
+
+    [[nodiscard]] constexpr auto GetEffect() const noexcept -> ID3DX11Effect* { return m_pEffect; }
+    [[nodiscard]] constexpr auto GetTechnique() const noexcept -> ID3DX11EffectTechnique* { return m_pTechnique; }
+    [[nodiscard]] constexpr auto GetWorldViewProjMat() const noexcept -> ID3DX11EffectMatrixVariable* { return m_pMatWorldViewProjVariable; }
+    [[nodiscard]] constexpr auto GetSamplerType() const noexcept -> ID3DX11EffectScalarVariable* { return m_pSamplerVariable; }
 
 protected:
     /*General*/

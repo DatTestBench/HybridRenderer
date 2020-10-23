@@ -1,9 +1,13 @@
-#ifndef ELITE_MATERIAL_MANAGER
-#define ELITE_MATERIAL_MANAGER
+#ifndef MATERIAL_MANAGER_HPP
+#define MATERIAL_MANAGER_HPP
 
-//Project includes
+//Standard Includes
 #include <unordered_map>
+
+// Project Includes
+#include "Helpers/Singleton.hpp"
 #include "Materials/Material.hpp"
+#include "Geometry/Mesh.hpp"
 
 enum SamplerType
 {
@@ -13,41 +17,31 @@ enum SamplerType
     SamplerSize = 3
 };
 
-class Mesh;
-
-class MaterialManager
+class MaterialManager final : public Singleton<MaterialManager>
 {
 public:
+    explicit MaterialManager(Token) : m_SamplerType(SPoint){};
     ~MaterialManager();
-    MaterialManager(const MaterialManager&) = delete;
-    MaterialManager& operator=(const MaterialManager&) = delete;
-    MaterialManager(MaterialManager&&) = delete;
-    MaterialManager& operator=(MaterialManager&&) = delete;
-
-    //Singleton Functionality
-    static MaterialManager* GetInstance();
-    static void Destroy();
+    DEL_ROF(MaterialManager)
 
     //External Item Manipulation
     void AddMaterial(Material* pMaterial);
 
     //Getters
-    std::unordered_map<int, Material*>* GetMaterials();
-    Material* GetMaterial(int key) const;
-    Material* GetMaterial(Mesh* pObject) const;
-    size_t Size() const;
+    [[nodiscard]] constexpr auto GetMaterials() noexcept -> std::unordered_map<int, Material*>* { return &m_Materials; }
+    [[nodiscard]] auto GetMaterial(const int key) const noexcept -> Material* { return m_Materials.at(key); }
+    [[nodiscard]] auto GetMaterial(Mesh* pObject) const noexcept -> Material* { return GetMaterial(pObject->GetMaterialId()); }
+    [[nodiscard]] auto AmountOfMaterials() const noexcept -> uint32_t { return static_cast<uint32_t>(m_Materials.size()); }
 
     //Workers
     void ChangeFilterType();
 
 private:
-    MaterialManager();
 
     //Data Members
-    static MaterialManager* m_pMaterialManager;
     std::unordered_map<int, Material*> m_Materials;
 
     SamplerType m_SamplerType;
 };
 
-#endif // !ELITE_DX_MATERIAL_MANAGER
+#endif // !MATERIAL_MANAGER_HPP

@@ -2,62 +2,19 @@
 #include "Materials/MaterialManager.hpp"
 #include "Scene/SceneGraph.hpp"
 #include "Geometry/Mesh.hpp"
-MaterialManager* MaterialManager::m_pMaterialManager = nullptr;
-
-MaterialManager::MaterialManager()
-    : m_SamplerType{SPoint}
-{
-}
 
 MaterialManager::~MaterialManager()
 {
-    for (std::pair<int, Material*> pMaterial : m_Materials)
+    for (auto [id, pMat] : m_Materials)
     {
-        delete pMaterial.second;
-        pMaterial.second = nullptr;
+        SafeDelete(pMat);
     }
 }
-
-#pragma region SingletonFunctionality
-MaterialManager* MaterialManager::GetInstance()
-{
-    if (m_pMaterialManager == nullptr)
-        m_pMaterialManager = new MaterialManager();
-    return m_pMaterialManager;
-}
-
-void MaterialManager::Destroy()
-{
-    delete GetInstance();
-}
-#pragma endregion
 
 #pragma region ExternalItemManipulation
 void MaterialManager::AddMaterial(Material* pMaterial)
 {
     m_Materials.emplace(std::make_pair(pMaterial->GetId(), pMaterial));
-}
-#pragma endregion
-
-#pragma region Getters
-std::unordered_map<int, Material*>* MaterialManager::GetMaterials()
-{
-    return &m_Materials;
-}
-
-Material* MaterialManager::GetMaterial(int key) const
-{
-    return m_Materials.at(key);
-}
-
-Material* MaterialManager::GetMaterial(Mesh* pObject) const
-{
-    return GetMaterial(pObject->GetMaterialId());
-}
-
-size_t MaterialManager::Size() const
-{
-    return m_Materials.size();
 }
 #pragma endregion
 

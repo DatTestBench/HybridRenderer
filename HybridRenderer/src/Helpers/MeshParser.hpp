@@ -1,7 +1,7 @@
 #ifndef MESH_PARSER_HPP
 #define MESH_PARSER_HPP
 
-//Project includes
+// Standard Includes
 #include <vector>
 #include <fstream>
 #include <string>
@@ -11,8 +11,9 @@
 #include <algorithm>
 #include <tuple>
 
+// Project Includes
 #include "Helpers/EMath.h"
-class Mesh;
+//class Mesh;
 
 class MeshParser
 {
@@ -45,7 +46,7 @@ public:
         for (auto& i : vInput)
         {
             std::smatch match;
-            bool searchMatch = regex_search(i, match, tokenCheck);
+            const auto searchMatch = regex_search(i, match, tokenCheck);
             auto search = m_ParseFunctions.find(match[1]);
             if (search != m_ParseFunctions.end() && searchMatch)
                 m_ParseFunctions.at(std::string(match[1]))(i);

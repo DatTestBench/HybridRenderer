@@ -272,20 +272,3 @@ void Camera::ToggleRenderSystem(const RenderSystem& renderSystem)
     }
 }
 #pragma endregion
-
-#pragma region Getters
-Elite::FMatrix4 Camera::GetInverseViewMatrix() const
-{
-    return m_LookAt;
-}
-
-Elite::FMatrix4 Camera::GetViewMatrix() const
-{
-    return Elite::Inverse(m_LookAt);
-}
-
-Elite::FMatrix4 Camera::GetProjectionMatrix() const
-{
-    return m_ProjectionMatrix;
-}
-#pragma endregion

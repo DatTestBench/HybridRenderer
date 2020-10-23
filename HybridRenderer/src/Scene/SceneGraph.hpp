@@ -1,10 +1,13 @@
-#ifndef ELITE_SCENE_GRAPH
-#define ELITE_SCENE_GRAPH
+#ifndef SCENE_GRAPH_HPP
+#define SCENE_GRAPH_HPP
 
-//Project includes
+//Standard Includes
 #include <vector>
 #include <map>
+
+//Project includes
 #include "Geometry/Mesh.hpp"
+#include "Helpers/Singleton.hpp"
 
 enum RenderType
 {
@@ -22,18 +25,13 @@ enum RenderSystem
 
 class Camera;
 
-class SceneGraph
+class SceneGraph final : public Singleton<SceneGraph>
 {
 public:
+    explicit SceneGraph(Token) : m_CurrentScene(0), m_RenderType(Color), m_RenderSystem(Software), m_ShowTransparency(true), m_AreObjectsRotating(true){}
     ~SceneGraph();
-    SceneGraph(const SceneGraph&) = delete;
-    SceneGraph& operator=(const SceneGraph&) = delete;
-    SceneGraph(SceneGraph&&) = delete;
-    SceneGraph& operator=(SceneGraph&&) = delete;
 
-    //Singleton Functionality
-    static SceneGraph* GetInstance();
-    static void Destroy();
+    DEL_ROF(SceneGraph)
 
     //External Item Manipulation
     void AddObjectToGraph(Mesh* pObject, int sceneIdx);
@@ -52,19 +50,17 @@ public:
     void ToggleObjectRotation();
 
     //Getters
-    const std::vector<Mesh*>& GetObjects() const;
-    const std::vector<Mesh*>& GetCurrentSceneObjects() const;
-    static Camera* GetCamera();
-    const RenderType& GetRenderType() const;
-    const RenderSystem& GetRenderSystem() const;
-    bool IsTransparencyOn() const;
-    size_t AmountOfScenes() const;
-    size_t Size() const;
+    [[nodiscard]] constexpr auto GetObjects() const noexcept -> const std::vector<Mesh*>& { return m_Objects; }
+    [[nodiscard]] auto GetCurrentSceneObjects() const noexcept -> const std::vector<Mesh*>& { return m_pScenes.at(m_CurrentScene); }
+    [[nodiscard]] static constexpr auto GetCamera() noexcept -> Camera* { return m_pCamera; }
+    [[nodiscard]] constexpr auto GetRenderType() const noexcept -> RenderType { return m_RenderType; }
+    [[nodiscard]] constexpr auto GetRenderSystem() const noexcept -> RenderSystem { return m_RenderSystem; }
+    [[nodiscard]] constexpr auto IsTransparencyOn() const noexcept -> bool { return m_ShowTransparency; }
+    [[nodiscard]] auto AmountOfScenes() const noexcept -> uint32_t { return static_cast<uint32_t>(m_pScenes.size()); }
+    [[nodiscard]] auto AmountOfObjects() const noexcept -> uint32_t { return static_cast<uint32_t>(m_Objects.size()); }
+    
 private:
-    SceneGraph();
-
     //Data Members
-    static SceneGraph* m_pSceneGraph;
     std::vector<Mesh*> m_Objects;
     std::map<int, std::vector<Mesh*>> m_pScenes;
     static Camera* m_pCamera;
@@ -77,4 +73,4 @@ private:
     bool m_AreObjectsRotating;
 };
 
-#endif // !ELITE_SCENE_GRAPH
+#endif // !SCENE_GRAPH_HPP

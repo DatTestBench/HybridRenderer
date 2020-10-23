@@ -1,60 +1,34 @@
 #include "pch.h"
 #include <iostream>
 #include <string>
-#include "SDL.h"
 #include "Scene/SceneGraph.hpp"
 #include "Rendering/Camera.hpp"
 
-SceneGraph* SceneGraph::m_pSceneGraph = nullptr;
 Camera* SceneGraph::m_pCamera = nullptr;
-
-SceneGraph::SceneGraph()
-    : m_CurrentScene{0},
-      m_RenderType{Color},
-      m_RenderSystem{Software},
-      m_ShowTransparency{true},
-      m_AreObjectsRotating{true}
-{
-}
 
 SceneGraph::~SceneGraph()
 {
-    for (size_t i = 0; i < Size(); i++)
+    for (auto pObject : m_Objects)
     {
-        delete m_Objects[i];
-        m_Objects[i] = nullptr;
+        SafeDelete(pObject);
     }
 
-    delete m_pCamera;
+    SafeDelete(m_pCamera);
 }
-
-#pragma region SingletonFunctionality
-SceneGraph* SceneGraph::GetInstance()
-{
-    if (m_pSceneGraph == nullptr)
-        m_pSceneGraph = new SceneGraph();
-    return m_pSceneGraph;
-}
-
-void SceneGraph::Destroy()
-{
-    delete SceneGraph::GetInstance();
-}
-#pragma endregion
 
 #pragma region ExternalItemManipulation
-void SceneGraph::AddObjectToGraph(Mesh* pObject, int sceneIdx)
+void SceneGraph::AddObjectToGraph(Mesh* pObject, const int sceneIdx)
 {
     m_Objects.push_back(pObject);
     m_pScenes.at(sceneIdx).push_back(pObject);
 }
 
-void SceneGraph::AddScene(int sceneIdx)
+void SceneGraph::AddScene(const int sceneIdx)
 {
     m_pScenes.try_emplace(sceneIdx);
 }
 
-void SceneGraph::SetCamera(const Elite::FPoint3& origin, uint32_t windowWidth, const uint32_t windowHeight, const float fovD)
+void SceneGraph::SetCamera(const Elite::FPoint3& origin, const uint32_t windowWidth, const uint32_t windowHeight, const float fovD)
 {
     if (m_pCamera == nullptr)
         m_pCamera = new Camera(origin, windowWidth, windowHeight, fovD);
@@ -174,47 +148,4 @@ void SceneGraph::ToggleObjectRotation()
         std::cout << "Object rotation turned off\n";
     }
 }
-#pragma endregion
-
-#pragma region Getters
-const std::vector<Mesh*>& SceneGraph::GetObjects() const
-{
-    return m_Objects;
-}
-
-const std::vector<Mesh*>& SceneGraph::GetCurrentSceneObjects() const
-{
-    return m_pScenes.at(m_CurrentScene);
-}
-
-Camera* SceneGraph::GetCamera()
-{
-    return m_pCamera;
-}
-
-const RenderType& SceneGraph::GetRenderType() const
-{
-    return m_RenderType;
-}
-
-const RenderSystem& SceneGraph::GetRenderSystem() const
-{
-    return m_RenderSystem;
-}
-
-bool SceneGraph::IsTransparencyOn() const
-{
-    return m_ShowTransparency;
-}
-
-size_t SceneGraph::AmountOfScenes() const
-{
-    return m_pScenes.size();
-}
-
-size_t SceneGraph::Size() const
-{
-    return m_Objects.size();
-}
-
 #pragma endregion

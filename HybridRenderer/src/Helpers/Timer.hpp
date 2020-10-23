@@ -16,20 +16,17 @@ public:
     Timer();
     ~Timer() = default;
 
-    Timer(const Timer&) = delete;
-    Timer(Timer&&) noexcept = delete;
-    Timer& operator=(const Timer&) = delete;
-    Timer& operator=(Timer&&) noexcept = delete;
+    DEL_ROF(Timer)
 
     void Reset();
     void Start();
     void Update();
     void Stop();
 
-    uint32_t GetFPS() const { return m_FPS; }
-    float GetElapsed() const { return m_ElapsedTime; }
-    float GetTotal() const { return m_TotalTime; }
-    bool IsRunning() const { return !m_IsStopped; }
+    [[nodiscard]] constexpr auto GetFPS() const noexcept -> uint32_t { return m_FPS; }
+    [[nodiscard]] constexpr auto GetElapsed() const noexcept -> float { return m_ElapsedTime; }
+    [[nodiscard]] constexpr auto GetTotal() const noexcept -> float { return m_TotalTime; }
+    [[nodiscard]] constexpr auto IsRunning() const noexcept -> bool { return !m_IsStopped; }
 
 private:
     uint64_t m_BaseTime;

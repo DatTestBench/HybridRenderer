@@ -1,17 +1,14 @@
 #include "pch.h"
 #include "Geometry/Mesh.hpp"
 #include "Materials/Material.hpp"
+#include "Materials/MaterialManager.hpp"
 #include "Scene/SceneGraph.hpp"
 #include "Rendering/Camera.hpp"
 
 Mesh::Mesh(ID3D11Device* pDevice, const std::string& modelPath, Material* pMaterial, const Elite::FPoint3& origin)
-    : m_MaterialId{pMaterial->GetId()},
-      m_pIndexBuffer{nullptr},
-      m_pVertexLayout{nullptr},
-      m_pVertexBuffer{nullptr},
-      m_AmountIndices{},
-      m_Origin{origin},
-      m_Topology{PrimitiveTopology::TriangleList} //Triangle strip is implemented, but can not be used currently
+    : m_MaterialId(pMaterial->GetId()),
+      m_Origin(origin),
+      m_Topology(PrimitiveTopology::TriangleList) //Triangle strip is implemented, but can not be used currently
 {
     MeshParser parser{};
     auto tuple = parser.ParseMesh(modelPath);
@@ -243,7 +240,8 @@ Elite::RGBColor Mesh::PixelShading(const VertexOutput& v) const noexcept
     return finalColor;
 }
 
-std::tuple<Elite::FVector2, Elite::FVector2> Mesh::MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const uint32_t maxScreenWidth, const uint32_t maxScreenHeight) const noexcept
+std::tuple<Elite::FVector2, Elite::FVector2> Mesh::MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const uint32_t maxScreenWidth,
+                                                                   const uint32_t maxScreenHeight) const noexcept
 {
     Elite::FVector2 boundingBoxMin = {static_cast<float>(maxScreenWidth - 1), static_cast<float>(maxScreenHeight - 1)};
     Elite::FVector2 boundingBoxMax = {0, 0};

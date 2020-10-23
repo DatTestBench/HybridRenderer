@@ -12,10 +12,8 @@ class Camera
 public:
     Camera(const Elite::FPoint3& origin, uint32_t windowWidth, uint32_t windowHeight, float fovD, float nearPlane = 0.1f, float farPlane = 100.f);
     ~Camera() = default;
-    Camera(const Camera&) = delete;
-    Camera& operator=(const Camera&) = delete;
-    Camera(Camera&&) = delete;
-    Camera& operator=(Camera&&) = delete;
+    
+    DEL_ROF(Camera)
 
     //Workers
     void Update(float dT);
@@ -26,9 +24,10 @@ public:
     void ToggleRenderSystem(const RenderSystem& renderSystem);
 
     //Getters
-    Elite::FMatrix4 GetInverseViewMatrix() const;
-    Elite::FMatrix4 GetViewMatrix() const;
-    Elite::FMatrix4 GetProjectionMatrix() const;
+
+    [[nodiscard]] auto GetInverseViewMatrix() const noexcept -> Elite::FMatrix4 { return m_LookAt; }
+    [[nodiscard]] auto GetViewMatrix() const noexcept -> Elite::FMatrix4 { return Inverse(m_LookAt); }
+    [[nodiscard]] auto GetProjectionMatrix() const noexcept -> Elite::FMatrix4 { return m_ProjectionMatrix; }
 
 private:
     Elite::FPoint3 m_Origin;

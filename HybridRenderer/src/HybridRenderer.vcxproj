@@ -116,6 +116,7 @@
     <ClInclude Include="Helpers\GeneralHelpers.hpp" />
     <ClInclude Include="Helpers\MeshParser.hpp" />
     <ClInclude Include="Helpers\RGBColor.hpp" />
+    <ClInclude Include="Helpers\Singleton.hpp" />
     <ClInclude Include="Helpers\Timer.hpp" />
     <ClInclude Include="Helpers\Vertex.hpp" />
     <ClInclude Include="Materials\BRDF.hpp" />

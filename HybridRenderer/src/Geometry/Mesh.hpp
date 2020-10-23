@@ -15,7 +15,7 @@
 #include "Materials/Texture.hpp"
 #include "Helpers/Vertex.hpp"
 #include "Helpers/MeshParser.hpp"
-#include "Materials/MaterialManager.hpp"
+#include "Materials/Material.hpp"
 
 
 enum class PrimitiveTopology
@@ -31,10 +31,7 @@ class Mesh
 public:
     Mesh(ID3D11Device* pDevice, const std::string& modelPath, Material* pMaterial, const Elite::FPoint3& origin = {0, 0, 0});
     ~Mesh();
-    Mesh(const Mesh&) = delete;
-    Mesh& operator=(const Mesh&) = delete;
-    Mesh(Mesh&&) = delete;
-    Mesh operator=(Mesh&&) = delete;
+    DEL_ROF(Mesh)
 
     //Workers
     /*General*/
@@ -54,22 +51,22 @@ public:
 
     //Getters
     /*General*/
-    int GetMaterialId() const { return m_MaterialId; }
-    Elite::FMatrix4 GetWorld() const { return m_WorldMatrix; }
-    const std::vector<VertexInput>& GetVertices() const { return m_VertexBuffer; }
+    [[nodiscard]] constexpr auto GetMaterialId() const noexcept -> int { return m_MaterialId; }
+    [[nodiscard]] auto GetWorld() const noexcept -> Elite::FMatrix4 { return m_WorldMatrix; }
+    [[nodiscard]] constexpr auto GetVertices() const noexcept -> const std::vector<VertexInput>& { return m_VertexBuffer; }
 
 
 private:
     /*General*/
+    int m_MaterialId;
     Elite::FMatrix4 m_WorldMatrix;
     Elite::FPoint3 m_Origin;
     float m_RotationAngle;
-    int m_MaterialId;
     PrimitiveTopology m_Topology;
 
     /*Software*/
-    std::vector<VertexInput> m_VertexBuffer;
     std::vector<uint32_t> m_IndexBuffer;
+    std::vector<VertexInput> m_VertexBuffer;
     std::vector<VertexOutput> m_SSVertices;
 
     bool AssembleTriangle(int idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height);

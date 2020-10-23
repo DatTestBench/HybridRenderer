@@ -38,10 +38,7 @@ public:
             delete m_pDiffuseMap;
     }
 
-    MaterialFlat(const MaterialFlat&) = delete;
-    MaterialFlat& operator=(const MaterialFlat&) = delete;
-    MaterialFlat(MaterialFlat&&) = delete;
-    MaterialFlat& operator=(MaterialFlat&&) = delete;
+    DEL_ROF(MaterialFlat)
 
     //Workers
     Elite::RGBColor Shade(const VertexOutput&, const Elite::FVector3&, const Elite::FVector3&, const Elite::FVector3&) const override

@@ -81,10 +81,7 @@ public:
             delete m_pSpecularMap;
     }
 
-    MaterialMapped(const MaterialMapped&) = delete;
-    MaterialMapped& operator=(const MaterialMapped&) = delete;
-    MaterialMapped(MaterialMapped&&) = delete;
-    MaterialMapped& operator=(MaterialMapped&&) = delete;
+    DEL_ROF(MaterialMapped)
 
     //Workers
     /*Software*/
@@ -132,7 +129,7 @@ public:
 
     //Getters
     /*D3D*/
-    Elite::FVector3 GetMappedNormal(const VertexOutput& v) const override
+    Elite::FVector3 GetMappedNormal(const VertexOutput& v) const noexcept override
     {
         if (m_pNormalMap == nullptr)
             return v.normal;
