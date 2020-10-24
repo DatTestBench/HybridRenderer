@@ -13,6 +13,7 @@
 
 //Project includes
 #include "Helpers/EMath.h"
+#include "Helpers/GeneralHelpers.hpp"
 #include "Materials/Texture.hpp"
 #include "Helpers/Vertex.hpp"
 #include "Helpers/MeshParser.hpp"
@@ -71,9 +72,9 @@ private:
     std::vector<VertexOutput> m_SSVertices;
 
     bool AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height);
-    std::tuple<bool, float, float, Elite::FVector3> IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const Elite::FPoint2& pixelPoint) const noexcept;
+    bool IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const Elite::FPoint2& pixelPoint, TriangleResult& triResult) const noexcept;
     Elite::RGBColor PixelShading(const VertexOutput& v) const noexcept;
-    std::tuple<Elite::FVector2, Elite::FVector2> MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, uint32_t maxScreenWidth = INT_MAX,
+    BoundingBox MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, uint32_t maxScreenWidth = INT_MAX,
                                                                  uint32_t maxScreenHeight = INT_MAX) const noexcept;
 
 

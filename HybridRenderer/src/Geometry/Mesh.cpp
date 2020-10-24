@@ -1,9 +1,12 @@
 #include "pch.h"
 #include "Geometry/Mesh.hpp"
+
+#include "Helpers/GeneralHelpers.hpp"
 #include "Materials/Material.hpp"
 #include "Materials/MaterialManager.hpp"
 #include "Scene/SceneGraph.hpp"
 #include "Rendering/Camera.hpp"
+#include "Helpers/GeneralHelpers.hpp"
 
 Mesh::Mesh(ID3D11Device* pDevice, const std::string& modelPath, Material* pMaterial, const Elite::FPoint3& origin)
     : m_MaterialId(pMaterial->GetId()),
@@ -40,12 +43,12 @@ void Mesh::Update(const float dT, const float rotationSpeed) noexcept
         break;
     case D3D:
         //Flipping the axis the model is rotating around, because DirectX is lefthanded!
-        rotationMatrix = Elite::MakeRotation(m_RotationAngle, Elite::FVector3(0, -1, 0));
+        rotationMatrix = MakeRotation(m_RotationAngle, Elite::FVector3(0, -1, 0));
         break;
     default:
         break;
     }
-    m_WorldMatrix = Elite::MakeTranslation(Elite::FVector3(m_Origin)) * Elite::FMatrix4(rotationMatrix) * Elite::FMatrix4(Elite::MakeScale(1.f, 1.f, 1.f));
+    m_WorldMatrix = MakeTranslation(Elite::FVector3(m_Origin)) * Elite::FMatrix4(rotationMatrix) * Elite::FMatrix4(Elite::MakeScale(1.f, 1.f, 1.f));
 }
 
 /*Software*/
@@ -83,7 +86,7 @@ bool Mesh::Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float*
     return meshHit;
 }
 
-bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, const uint32_t width, const uint32_t height)
+bool Mesh::AssembleTriangle(const uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, const uint32_t width, const uint32_t height)
 {
     VertexOutput v0{};
     VertexOutput v1{};
@@ -92,30 +95,34 @@ bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* bac
     switch (m_Topology)
     {
     case PrimitiveTopology::TriangleList:
-        v0 = m_SSVertices[m_IndexBuffer[static_cast<uint64_t>(idx)]];
+        v0 = m_SSVertices[m_IndexBuffer[idx]];
 
         if (v0.pos.z < 0)
             return false;
-        v1 = m_SSVertices[m_IndexBuffer[static_cast<uint64_t>(idx) + 1]];
+        v1 = m_SSVertices[m_IndexBuffer[idx + 1]];
 
         if (v1.pos.z < 0)
             return false;
-        v2 = m_SSVertices[m_IndexBuffer[static_cast<uint64_t>(idx) + 2]];
+        v2 = m_SSVertices[m_IndexBuffer[idx + 2]];
 
         if (v2.pos.z < 0)
             return false;
         break;
     case PrimitiveTopology::TriangleStrip:
-        if (m_IndexBuffer[idx] == m_IndexBuffer[static_cast<uint64_t>(idx) + 1] || m_IndexBuffer[static_cast<uint64_t>(idx) + 1] == m_IndexBuffer[static_cast<uint64_t>(idx) + 2] || m_IndexBuffer[
-            static_cast<uint64_t>(idx) + 2] == m_IndexBuffer[idx])
+        if (m_IndexBuffer[idx] == m_IndexBuffer[idx + 1]
+            || m_IndexBuffer[idx + 1] == m_IndexBuffer[idx + 2]
+            || m_IndexBuffer[idx + 2] == m_IndexBuffer[idx])
             return false;
+        
         v0 = m_SSVertices[m_IndexBuffer[idx]];
         if (v0.pos.z < 0)
             return false;
-        v1 = m_SSVertices[m_IndexBuffer[static_cast<int64_t>(idx) + 1 + static_cast<uint64_t>(idx % 2)]];
+        
+        v1 = m_SSVertices[m_IndexBuffer[idx + 1 + idx % 2]];
         if (v1.pos.z < 0)
             return false;
-        v2 = m_SSVertices[m_IndexBuffer[static_cast<uint64_t>(idx) + 2 - static_cast<uint64_t>(idx % 2)]];
+        
+        v2 = m_SSVertices[m_IndexBuffer[idx + 2 - idx % 2]];
         if (v2.pos.z < 0)
             return false;
         break;
@@ -129,34 +136,23 @@ bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* bac
         return false;
     }
 
-    float w0{};
-    float w1{};
-    float w2{};
-
-    auto boundingBox = MakeBoundingBox(v0, v1, v2, width, height);
-    auto boundingBoxMin = std::get<0>(boundingBox);
-    auto boundingBoxMax = std::get<1>(boundingBox);
+    const auto boundingBox = MakeBoundingBox(v0, v1, v2, width, height);
 
     Elite::RGBColor finalColor{};
-    auto depth = FLT_MAX;
 
-    for (auto r = static_cast<uint32_t>(boundingBoxMin.y); r < static_cast<uint32_t>(boundingBoxMax.y); ++r)
+    for (auto r = static_cast<uint32_t>(boundingBox.minPoint.y); r < static_cast<uint32_t>(boundingBox.maxPoint.y); ++r)
     {
-        for (auto c = static_cast<uint32_t>(boundingBoxMin.x); c < static_cast<uint32_t>(boundingBoxMax.x); ++c)
+        for (auto c = static_cast<uint32_t>(boundingBox.minPoint.x); c < static_cast<uint32_t>(boundingBox.maxPoint.x); ++c)
         {
-            auto triResult = IsPointInTriangle(v0, v1, v2, Elite::FPoint2(static_cast<float>(c), static_cast<float>(r)));
-            if (std::get<0>(triResult))
+            
+            auto triResult = TriangleResult::Failed;
+            if (IsPointInTriangle(v0, v1, v2, Elite::FPoint2(static_cast<float>(c), static_cast<float>(r)), triResult))
             {
-                depth = std::get<1>(triResult);
-                auto linearInterpolatedDepth = std::get<2>(triResult);
-
-                w0 = std::get<3>(triResult).x;
-                w1 = std::get<3>(triResult).y;
-                w2 = std::get<3>(triResult).z;
+                const auto depth = triResult.interpolatedDepth;
 
                 if (depth < depthBuffer[c + (r * width)])
                 {
-                    auto vInterpolated = Interpolate(v0, v1, v2, w0, w1, w2, linearInterpolatedDepth);
+                    auto vInterpolated = Interpolate(v0, v1, v2, triResult);
 
                     switch (SceneGraph::GetInstance()->GetRenderSystem())
                     {
@@ -181,7 +177,7 @@ bool Mesh::AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* bac
     return true;
 }
 
-std::tuple<bool, float, float, Elite::FVector3> Mesh::IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const Elite::FPoint2& pixelPoint) const noexcept
+bool Mesh::IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const Elite::FPoint2& pixelPoint, TriangleResult& triResult) const noexcept
 {
     //Is point in triangle
     const auto edgeA = v1.pos.xy - v0.pos.xy;
@@ -189,24 +185,36 @@ std::tuple<bool, float, float, Elite::FVector3> Mesh::IsPointInTriangle(const Ve
 
     const auto signedAreaTriV2 = Cross(pointToSide, edgeA);
     if (signedAreaTriV2 < 0)
-        return std::make_tuple(false, 0.f, 0.f, Elite::FVector3{});
+    {
+        triResult = TriangleResult::Failed;
+        return false;
+    }
 
     const auto edgeB = v2.pos.xy - v1.pos.xy;
     pointToSide = pixelPoint - v1.pos.xy;
     const auto signedAreaTriV0 = Cross(pointToSide, edgeB);
     if (signedAreaTriV0 < 0)
-        return std::make_tuple(false, 0.f, 0.f, Elite::FVector3{});
+    {
+        triResult = TriangleResult::Failed;
+        return false;
+    }
 
     const auto edgeC = v0.pos.xy - v2.pos.xy;
     pointToSide = pixelPoint - v2.pos.xy;
     const auto signedAreaTriV1 = Cross(pointToSide, edgeC);
     if (signedAreaTriV1 < 0)
-        return std::make_tuple(false, 0.f, 0.f, Elite::FVector3{});
+    {
+        triResult = TriangleResult::Failed;
+        return false;
+    }
 
     //Weight Calculations
-    const auto signedAreaTriFull = Elite::Cross(Elite::FVector2(v1.pos.xy - v2.pos.xy), Elite::FVector2(v0.pos.xy - v1.pos.xy));
+    const auto signedAreaTriFull = Cross(Elite::FVector2(v1.pos.xy - v2.pos.xy), Elite::FVector2(v0.pos.xy - v1.pos.xy));
     if (signedAreaTriFull < 0)
-        return std::make_tuple(false, 0.f, 0.f, Elite::FVector3{});
+    {
+        triResult = TriangleResult::Failed;
+        return false;
+    }
 
     const auto w0 = signedAreaTriV0 / signedAreaTriFull;
     const auto w1 = signedAreaTriV1 / signedAreaTriFull;
@@ -215,7 +223,8 @@ std::tuple<bool, float, float, Elite::FVector3> Mesh::IsPointInTriangle(const Ve
     const auto interpolatedDepth = 1.f / ((1.f / v0.pos.z) * w0 + (1.f / v1.pos.z) * w1 + (1.f / v2.pos.z) * w2);
     const auto linearInterpolatedDepth = 1.f / ((1.f / v0.pos.w) * w0 + (1.f / v1.pos.w) * w1 + (1.f / v2.pos.w) * w2);
 
-    return std::make_tuple(true, interpolatedDepth, linearInterpolatedDepth, Elite::FVector3{w0, w1, w2});
+    triResult = TriangleResult(interpolatedDepth, linearInterpolatedDepth, w0, w1, w2);
+    return true;
 }
 
 Elite::RGBColor Mesh::PixelShading(const VertexOutput& v) const noexcept
@@ -239,7 +248,7 @@ Elite::RGBColor Mesh::PixelShading(const VertexOutput& v) const noexcept
     return finalColor;
 }
 
-std::tuple<Elite::FVector2, Elite::FVector2> Mesh::MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const uint32_t maxScreenWidth,
+BoundingBox Mesh::MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const uint32_t maxScreenWidth,
                                                                    const uint32_t maxScreenHeight) const noexcept
 {
     Elite::FVector2 boundingBoxMin = {static_cast<float>(maxScreenWidth - 1), static_cast<float>(maxScreenHeight - 1)};
@@ -260,7 +269,7 @@ std::tuple<Elite::FVector2, Elite::FVector2> Mesh::MakeBoundingBox(const VertexO
     boundingBoxMax.x = std::min(boundingBoxMax.x + 1, static_cast<float>(maxScreenWidth - 1));
     boundingBoxMax.y = std::min(boundingBoxMax.y + 1, static_cast<float>(maxScreenHeight - 1));
 
-    return std::make_tuple(boundingBoxMin, boundingBoxMax);
+    return BoundingBox(boundingBoxMin, boundingBoxMax);
 }
 
 
