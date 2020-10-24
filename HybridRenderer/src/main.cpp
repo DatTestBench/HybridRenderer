@@ -7,10 +7,16 @@
 
 //Project includes
 #include "Helpers/Timer.hpp"
+#pragma warning (push, 0)
+#include "ImGui/imgui_impl_sdl.h"
+#pragma warning (pop)
 #include "Materials/MaterialManager.hpp"
 #include "Rendering/Renderer.hpp"
 #include "Scene/SceneGraph.hpp"
 #include "Rendering/Camera.hpp"
+
+
+
 
 void ShutDown(SDL_Window* pWindow)
 {
@@ -40,18 +46,24 @@ int main(int argc, char* args[])
 	//Create window + surfaces
 	SDL_Init(SDL_INIT_VIDEO);
 
+	// OpenGL versions
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 	const uint32_t width = 1280;
 	const uint32_t height = 720;
 	auto* pWindow = SDL_CreateWindow(
-		"DualRenderer - **Matthieu Limelette**",
-		SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED,
-		width, height, 0);
+		"Hybrid Renderer",
+		SDL_WINDOWPOS_CENTERED,
+		SDL_WINDOWPOS_CENTERED,
+		width, height, SDL_WINDOW_OPENGL);
 
 	if (!pWindow)
 		return 1;
 
 	//Initialize "framework"
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	
 	auto pTimer{ std::make_unique<Timer>() };
 	const auto pRenderer{ std::make_unique<Renderer>(pWindow) };
 	PrintToolTip();
@@ -67,6 +79,7 @@ int main(int argc, char* args[])
 		SDL_Event e;
 		while (SDL_PollEvent(&e))
 		{
+			ImGui_ImplSDL2_ProcessEvent(&e);
 			switch (e.type)
 			{
 			case SDL_QUIT:
@@ -84,7 +97,10 @@ int main(int argc, char* args[])
 				if (e.key.keysym.scancode == SDL_SCANCODE_T)
 					SceneGraph::GetInstance()->ToggleTransparency();
 				if (e.key.keysym.scancode == SDL_SCANCODE_R)
+				{
 					SceneGraph::GetInstance()->ToggleRenderSystem();
+					pRenderer->SwapRenderSystem();
+				}
 				if (e.key.keysym.scancode == SDL_SCANCODE_M)
 					SceneGraph::GetInstance()->ToggleRenderType();
 				if (e.key.keysym.scancode == SDL_SCANCODE_Y)
@@ -116,6 +132,7 @@ int main(int argc, char* args[])
 	//Shutdown "framework"
 	SceneGraph::GetInstance()->Destroy();
 	MaterialManager::GetInstance()->Destroy();
+	ImGui::DestroyContext();
 	ShutDown(pWindow);
 	return 0;
 }

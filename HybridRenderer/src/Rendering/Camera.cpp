@@ -6,7 +6,7 @@
 Camera::Camera(const glm::vec3& origin, const uint32_t windowWidth, const uint32_t windowHeight, const float fovD, const float nearPlane, const float farPlane)
 // ELITE_OLD Camera::Camera(const Elite::FPoint3& origin, const uint32_t windowWidth, const uint32_t windowHeight, const float fovD, const float nearPlane, const float farPlane)
     : m_Origin{origin},
-      m_RenderSystem{Software},
+      m_RenderSystem{SceneGraph::GetInstance()->GetRenderSystem()},
       m_MovementSensitivity{60.f},
       m_RotationSensitivity{0.5f},
       m_Pitch{},
@@ -21,13 +21,27 @@ Camera::Camera(const glm::vec3& origin, const uint32_t windowWidth, const uint32
       m_ProjectionMatrix{},
       m_ViewMatrix{}
 {
-    //Default render system is software, so matrix is right handed by default
-    m_ProjectionMatrix = {
-        {1.f / (m_AspectRatio * m_FOV), 0, 0, 0},
-        {0, 1.f / m_FOV, 0, 0},
-        {0, 0, m_FarPlane / (m_NearPlane - m_FarPlane), -1},
-        {0, 0, (m_FarPlane * m_NearPlane) / (m_NearPlane - m_FarPlane), 0}
-    };
+    switch (m_RenderSystem)
+    {
+    case Software:
+        m_ProjectionMatrix = {
+            {1.f / (m_AspectRatio * m_FOV), 0, 0, 0},
+            {0, 1.f / m_FOV, 0, 0},
+            {0, 0, m_FarPlane / (m_NearPlane - m_FarPlane), - 1},
+            {0, 0, (m_FarPlane * m_NearPlane) / (m_NearPlane - m_FarPlane), 0}
+        };
+        break;
+    case D3D:
+        m_ProjectionMatrix = {
+            {1.f / (m_AspectRatio * m_FOV), 0, 0, 0},
+            {0, 1.f / m_FOV, 0, 0},
+            {0, 0, m_FarPlane / (m_FarPlane - m_NearPlane), 1},
+            {0, 0, -(m_NearPlane * m_FarPlane) / (m_FarPlane - m_NearPlane), 0}
+        };
+        break;
+    default:
+        break;
+    }
 }
 
 #pragma region Workers

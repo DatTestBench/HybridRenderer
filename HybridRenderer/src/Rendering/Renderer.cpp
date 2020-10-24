@@ -2,6 +2,13 @@
 
 //Project includes
 #include "Rendering/Renderer.hpp"
+
+#pragma warning (push, 0)
+#include "ImGui/imgui_impl_sdl.h"
+#include "ImGui/imgui_impl_dx11.h"
+#include "ImGui/imgui_impl_opengl2.h"
+#pragma warning (pop)
+
 #include "Materials/MaterialManager.hpp"
 #include "Materials/MaterialMapped.hpp"
 #include "Materials/MaterialFlat.hpp"
@@ -22,14 +29,21 @@ Renderer::Renderer(SDL_Window* pWindow)
 	m_Height = static_cast<uint32_t>(height);
 	m_pSceneGraph->SetCamera(glm::vec3(0, 5, 65), m_Width, m_Height, 60.f);
 	// ELITE_OLD m_pSceneGraph->SetCamera(Elite::FPoint3(0, 5, 65), m_Width, m_Height, 60.f);
-
+	
 	/*Software*/
+	
+	const auto gl_context = SDL_GL_CreateContext(m_pWindow);
+	SDL_GL_MakeCurrent(m_pWindow, gl_context);
+	SDL_GL_SetSwapInterval(1); // Enable vsync
+	
 	m_pFrontBuffer = SDL_GetWindowSurface(pWindow);
 	m_pBackBuffer = SDL_CreateRGBSurface(0, m_Width, m_Height, 32, 0, 0, 0, 0);
 	m_pBackBufferPixels = static_cast<uint32_t*>(m_pBackBuffer->pixels);
 	m_pDepthBuffer = new float[static_cast<uint64_t>(m_Width * m_Height)];
 
-
+	ImGui_ImplSDL2_InitForOpenGL(m_pWindow, gl_context);
+	ImGui_ImplOpenGL2_Init();
+	
 	/*D3D*/
 	HRESULT result = InitializeDirectX();
 
@@ -43,6 +57,9 @@ Renderer::Renderer(SDL_Window* pWindow)
 		m_IsInitialized = true;
 		std::cout << "DirectX is ready\n";
 	}
+
+	ImGui_ImplSDL2_InitForD3D(m_pWindow);
+	ImGui_ImplDX11_Init(m_pDevice, m_pDeviceContext);
 
 	//Objects and materials are initialized here as m_pDevice is needed for object initialization
 	MaterialManager::GetInstance()->AddMaterial(new MaterialMapped(m_pDevice, L"./Resources/Shaders/PosCol3D.fx", "./Resources/Textures/vehicle_diffuse.png", "./Resources/Textures/vehicle_normal.png", "./Resources/Textures/vehicle_gloss.png", "./Resources/Textures/vehicle_specular.png", 25.f, 1, false));
@@ -93,6 +110,14 @@ Renderer::~Renderer()
 		m_pDevice->Release();
 	if (m_pDXGIFactory)
 		m_pDXGIFactory->Release();
+
+
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplOpenGL2_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+
+	SDL_GL_DeleteContext(SDL_GL_GetCurrentContext());
+	
 }
 
 void Renderer::Render() const
@@ -103,29 +128,81 @@ void Renderer::Render() const
 	switch (m_pSceneGraph->GetRenderSystem())
 	{
 	case RenderSystem::Software:
-		clearColor = { 128.f, 128.f, 128.f };
-		SDL_LockSurface(m_pBackBuffer);
+		{			
+			clearColor = { 128.f, 128.f, 128.f };
 
-		std::fill_n(m_pDepthBuffer, static_cast<uint64_t>(m_Width * m_Height), FLT_MAX);
-		std::fill_n(m_pBackBufferPixels, static_cast<uint64_t>(m_Width * m_Height), SDL_MapRGB(m_pBackBuffer->format,
-            static_cast<uint8_t>(clearColor.r),
-            static_cast<uint8_t>(clearColor.g),
-            static_cast<uint8_t>(clearColor.b)));
+			//glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			SDL_LockSurface(m_pBackBuffer);
 
-		for (auto& o : m_pSceneGraph->GetCurrentSceneObjects())
-		{
-			m_pSceneGraph->GetCamera()->MakeScreenSpace(o);
-			o->Rasterize(m_pBackBuffer, m_pBackBufferPixels, m_pDepthBuffer, m_Width, m_Height);
+			ImGui_ImplOpenGL2_NewFrame();
+			ImGui_ImplSDL2_NewFrame(m_pWindow);
+			ImGui::NewFrame();
+		
+			std::fill_n(m_pDepthBuffer, static_cast<uint64_t>(m_Width * m_Height), FLT_MAX);
+			std::fill_n(static_cast<uint32_t*>(m_pBackBufferPixels), static_cast<uint64_t>(m_Width * m_Height), SDL_MapRGB(m_pBackBuffer->format,
+                static_cast<uint8_t>(clearColor.r),
+                static_cast<uint8_t>(clearColor.g),
+                static_cast<uint8_t>(clearColor.b)));
+
+		
+
+			ImGui::ShowDemoWindow();
+			for (auto& o : m_pSceneGraph->GetCurrentSceneObjects())
+			{
+				m_pSceneGraph->GetCamera()->MakeScreenSpace(o);
+				o->Rasterize(m_pBackBuffer, static_cast<uint32_t*>(m_pBackBuffer->pixels), m_pDepthBuffer, m_Width, m_Height);
+			}
+			SDL_LockSurface(m_pBackBuffer);
+			
+			ImGui::Render();
+
+			GLuint texture;
+			
+			glGenTextures( 1, &texture );
+			glBindTexture( GL_TEXTURE_2D, texture );
+
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, m_pBackBuffer->w, m_pBackBuffer->h, 0, GL_BGRA,GL_UNSIGNED_BYTE, m_pBackBuffer->pixels );
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			
+			glEnable(GL_TEXTURE_2D);
+			{
+				glBegin(GL_QUADS);
+				{
+
+					const auto uvLeft = 0.0f;
+					const auto uvRight = 1.0f;
+					const auto uvTop = 0.0f;
+					const auto uvBottom = 1.0f;
+					
+					glTexCoord2f(uvLeft, uvBottom); glVertex3f(-1.f, -1.f, -1.f);
+					glTexCoord2f(uvLeft, uvTop); glVertex3f(-1.f, 1.f, -1.f);
+					glTexCoord2f(uvRight, uvTop); glVertex3f(1.f, 1.f, -1.f);
+					glTexCoord2f(uvRight, uvBottom); glVertex3f(1.f, -1.f, -1.f);
+				}
+				glEnd();
+			}
+			
+			glDisable(GL_TEXTURE_2D);
+			glDeleteTextures(1, &texture);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		
+			ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+			
+			SDL_GL_SwapWindow(m_pWindow);
+			break;
 		}
-
-		SDL_UnlockSurface(m_pBackBuffer);
-		SDL_BlitSurface(m_pBackBuffer, nullptr, m_pFrontBuffer, nullptr);
-		SDL_UpdateWindowSurface(m_pWindow);
-		break;
 	case D3D:
 		if (!m_IsInitialized)
 			return;
 
+		ImGui_ImplDX11_NewFrame();
+		ImGui_ImplSDL2_NewFrame(m_pWindow);
+		ImGui::NewFrame();
+		
+		
+		
 		//Clear Buffers
 		clearColor = RGBColor(0.f, 0.f, 0.3f);
 		// ELITE_OLD clearColor = Elite::RGBColor(0.f, 0.f, 0.3f);
@@ -133,16 +210,44 @@ void Renderer::Render() const
 		m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		//Render
+		ImGui::ShowDemoWindow();
 		for (auto& mesh : m_pSceneGraph->GetCurrentSceneObjects())
 		{
 			mesh->Render(m_pDeviceContext, m_pSceneGraph->GetCamera());
 		}
 
+		ImGui::Render();	
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+		
 		//Present
 		m_pSwapChain->Present(0, 0);
 		break;
 	default:
 		break;
+	}
+}
+
+void Renderer::SwapRenderSystem() const
+{
+	const auto newRenderSystem = m_pSceneGraph->GetRenderSystem();
+
+	switch (newRenderSystem)
+	{
+	case RenderSystem::Software:
+		{
+			ImGui_ImplSDL2_InitForOpenGL(m_pWindow, SDL_GL_GetCurrentContext());
+			ImGui_ImplOpenGL2_Init();
+
+			ImGui_ImplDX11_Shutdown();
+
+			
+		}
+	case RenderSystem::D3D:
+		{
+			ImGui_ImplSDL2_InitForD3D(m_pWindow);
+			ImGui_ImplDX11_Init(m_pDevice, m_pDeviceContext);
+			ImGui_ImplOpenGL2_Shutdown();
+		}
 	}
 }
 

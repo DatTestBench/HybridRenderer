@@ -2,7 +2,6 @@
 #define GENERAL_HELPERS_HPP
 #include "EMath.h"
 
-#define 
 
 // Structs
 struct BoundingBox

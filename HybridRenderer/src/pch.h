@@ -6,9 +6,13 @@
 #define NOMINMAX  //for directx
 
 // SDL Headers
-#include "SDL.h"
-#include "SDL_syswm.h"
-#include "SDL_surface.h"
+#include <SDL.h>
+#include <SDL_syswm.h>
+#include <SDL_surface.h>
+
+#include <SDL_opengl.h>
+#include <GL\GLU.h>
+#include <SDL_image.h>
 
 // DirectX Headers
 #include <dxgi.h>

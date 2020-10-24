@@ -28,7 +28,7 @@ class Camera;
 class SceneGraph final : public Singleton<SceneGraph>
 {
 public:
-    explicit SceneGraph(Token) : m_CurrentScene(0), m_RenderType(Color), m_RenderSystem(Software), m_ShowTransparency(true), m_AreObjectsRotating(true){}
+    explicit SceneGraph(Token) : m_CurrentScene(0), m_RenderType(Color), m_RenderSystem(D3D), m_ShowTransparency(true), m_AreObjectsRotating(true){}
     ~SceneGraph();
 
     DEL_ROF(SceneGraph)

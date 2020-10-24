@@ -18,7 +18,7 @@ public:
     DEL_ROF(Renderer)
 
     void Render() const;
-
+    void SwapRenderSystem() const;
 private:
     /*General*/
     SDL_Window* m_pWindow;
