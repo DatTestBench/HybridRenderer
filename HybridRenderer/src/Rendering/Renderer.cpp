@@ -20,7 +20,8 @@ Renderer::Renderer(SDL_Window* pWindow)
 	SDL_GetWindowSize(pWindow, &width, &height);
 	m_Width = static_cast<uint32_t>(width);
 	m_Height = static_cast<uint32_t>(height);
-	m_pSceneGraph->SetCamera(Elite::FPoint3(0, 5, 65), m_Width, m_Height, 60.f);
+	m_pSceneGraph->SetCamera(glm::vec3(0, 5, 65), m_Width, m_Height, 60.f);
+	// ELITE_OLD m_pSceneGraph->SetCamera(Elite::FPoint3(0, 5, 65), m_Width, m_Height, 60.f);
 
 	/*Software*/
 	m_pFrontBuffer = SDL_GetWindowSurface(pWindow);
@@ -47,8 +48,10 @@ Renderer::Renderer(SDL_Window* pWindow)
 	MaterialManager::GetInstance()->AddMaterial(new MaterialMapped(m_pDevice, L"./Resources/Shaders/PosCol3D.fx", "./Resources/Textures/vehicle_diffuse.png", "./Resources/Textures/vehicle_normal.png", "./Resources/Textures/vehicle_gloss.png", "./Resources/Textures/vehicle_specular.png", 25.f, 1, false));
 	MaterialManager::GetInstance()->AddMaterial(new MaterialFlat(m_pDevice, L"./Resources/Shaders/FlatTransparancy.fx", "./Resources/Textures/fireFX_diffuse.png", 2, true));
 	m_pSceneGraph->AddScene(0);
-	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/vehicle.obj", MaterialManager::GetInstance()->GetMaterial(1), Elite::FPoint3(0, 0, 0)), 0);
-	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/fireFX.obj", MaterialManager::GetInstance()->GetMaterial(2), Elite::FPoint3(0, 0, 0)), 0);
+	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/vehicle.obj", MaterialManager::GetInstance()->GetMaterial(1), glm::vec3(0, 0, 0)), 0);
+	// ELITE_OLD m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/vehicle.obj", MaterialManager::GetInstance()->GetMaterial(1), Elite::FPoint3(0, 0, 0)), 0);
+	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/fireFX.obj", MaterialManager::GetInstance()->GetMaterial(2), glm::vec3(0, 0, 0)), 0);
+	// ELITE_OLD m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/fireFX.obj", MaterialManager::GetInstance()->GetMaterial(2), Elite::FPoint3(0, 0, 0)), 0);
 }
 
 Renderer::~Renderer()
@@ -84,6 +87,7 @@ Renderer::~Renderer()
 		pDebug->Release();
 		pDebug = nullptr;
 	}
+	(void) hr;
 #endif
 	if (m_pDevice)
 		m_pDevice->Release();
@@ -94,7 +98,8 @@ Renderer::~Renderer()
 void Renderer::Render() const
 {
 
-	Elite::RGBColor clearColor{};
+	RGBColor clearColor{};
+	// ELITE_OLD Elite::RGBColor clearColor{};
 	switch (m_pSceneGraph->GetRenderSystem())
 	{
 	case RenderSystem::Software:
@@ -122,7 +127,8 @@ void Renderer::Render() const
 			return;
 
 		//Clear Buffers
-		clearColor = Elite::RGBColor(0.f, 0.f, 0.3f);
+		clearColor = RGBColor(0.f, 0.f, 0.3f);
+		// ELITE_OLD clearColor = Elite::RGBColor(0.f, 0.f, 0.3f);
 		m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, &clearColor.r);
 		m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 

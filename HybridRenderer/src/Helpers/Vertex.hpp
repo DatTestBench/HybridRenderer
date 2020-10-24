@@ -9,15 +9,20 @@
 struct VertexInput
 {
     //Data-members
-    Elite::FPoint3 pos = {};
-    Elite::FVector2 uv = {};
-    Elite::FVector3 normal = {};
-    Elite::FVector3 tangent = {};
+    glm::vec3 pos = {};
+    // ELITE_OLD Elite::FPoint3 pos = {};
+    glm::vec2 uv = {};
+    // ELITE_OLD Elite::FVector2 uv = {};
+    glm::vec3 normal = {};
+    // ELITE_OLD Elite::FVector3 normal = {};
+    glm::vec3 tangent = {};
+    // ELITE_OLD Elite::FVector3 tangent = {};
 
     //Constructors
     VertexInput() = default;
 
-    VertexInput(const Elite::FPoint3& position, const Elite::FVector2& uv, const Elite::FVector3& normal, const Elite::FVector3& tangent = Elite::FVector3(0, 0, 0))
+    VertexInput(const glm::vec3& position, const glm::vec2& uv, const glm::vec3& normal, const glm::vec3& tangent = glm::vec3(0, 0, 0))
+    // ELITE_OLD VertexInput(const Elite::FPoint3& position, const Elite::FVector2& uv, const Elite::FVector3& normal, const Elite::FVector3& tangent = Elite::FVector3(0, 0, 0))
         : pos(position),
           uv(uv),
           normal(normal),
@@ -29,12 +34,18 @@ struct VertexInput
 struct VertexOutput
 {
     //Data-members
-    Elite::FPoint4 pos = {};
-    Elite::FPoint3 worldPos = {};
-    Elite::FVector2 uv = {};
-    Elite::FVector3 normal = {};
-    Elite::FVector3 tangent = {};
-    Elite::FVector3 viewDirection = {};
+    glm::vec4 pos = {};
+    // ELITE_OLD Elite::FPoint4 pos = {};
+    glm::vec3 worldPos = {};
+    // ELITE_OLD Elite::FPoint3 worldPos = {};
+    glm::vec2 uv = {};
+    // ELITE_OLD Elite::FVector2 uv = {};
+    glm::vec3 normal = {};
+    // ELITE_OLD Elite::FVector3 normal = {};
+    glm::vec3 tangent = {};
+    // ELITE_OLD Elite::FVector3 tangent = {};
+    glm::vec3 viewDirection = {};
+    // ELITE_OLD Elite::FVector3 viewDirection = {};
     bool culled = {false};
 
     //Constructors
@@ -60,7 +71,8 @@ inline VertexOutput Interpolate(const VertexOutput& v0, const VertexOutput& v1, 
     const auto w1 = result.weight1;
     const auto w2 = result.weight2;
 
-    vReturn.worldPos = Elite::FPoint3(Elite::FVector3((v0.worldPos / v0.pos.w) * w0 + Elite::FVector3(v1.worldPos / v1.pos.w) * w1 + Elite::FVector3(v2.worldPos / v2.pos.w) * w2) * lerpDepth);
+    vReturn.worldPos = glm::vec3(glm::vec3((v0.worldPos / v0.pos.w) * w0 + glm::vec3(v1.worldPos / v1.pos.w) * w1 + glm::vec3(v2.worldPos / v2.pos.w) * w2) * lerpDepth);
+    // ELITE_OLD vReturn.worldPos = Elite::FPoint3(Elite::FVector3((v0.worldPos / v0.pos.w) * w0 + Elite::FVector3(v1.worldPos / v1.pos.w) * w1 + Elite::FVector3(v2.worldPos / v2.pos.w) * w2) * lerpDepth);
     vReturn.uv = ((v0.uv / v0.pos.w) * w0 + (v1.uv / v1.pos.w) * w1 + (v2.uv / v2.pos.w) * w2) * lerpDepth;
     vReturn.normal = ((v0.normal / v0.pos.w) * w0 + (v1.normal / v1.pos.w) * w1 + (v2.normal / v2.pos.w) * w2) * lerpDepth;
     vReturn.tangent = ((v0.tangent / v0.pos.w) * w0 + (v1.tangent / v1.pos.w) * w1 + (v2.tangent / v2.pos.w) * w2) * lerpDepth;
@@ -73,7 +85,8 @@ inline VertexOutput Interpolate(const VertexOutput& v0, const VertexOutput& v1, 
 {
     VertexOutput vReturn{};
 
-    vReturn.worldPos = Elite::FPoint3(Elite::FVector3((v0.worldPos / v0.pos.w) * w0 + Elite::FVector3(v1.worldPos / v1.pos.w) * w1 + Elite::FVector3(v2.worldPos / v2.pos.w) * w2) * lerpDepth);
+    vReturn.worldPos = glm::vec3(glm::vec3((v0.worldPos / v0.pos.w) * w0 + glm::vec3(v1.worldPos / v1.pos.w) * w1 + glm::vec3(v2.worldPos / v2.pos.w) * w2) * lerpDepth);
+    // ELITE_OLD vReturn.worldPos = Elite::FPoint3(Elite::FVector3((v0.worldPos / v0.pos.w) * w0 + Elite::FVector3(v1.worldPos / v1.pos.w) * w1 + Elite::FVector3(v2.worldPos / v2.pos.w) * w2) * lerpDepth);
     vReturn.uv = ((v0.uv / v0.pos.w) * w0 + (v1.uv / v1.pos.w) * w1 + (v2.uv / v2.pos.w) * w2) * lerpDepth;
     vReturn.normal = ((v0.normal / v0.pos.w) * w0 + (v1.normal / v1.pos.w) * w1 + (v2.normal / v2.pos.w) * w2) * lerpDepth;
     vReturn.tangent = ((v0.tangent / v0.pos.w) * w0 + (v1.tangent / v1.pos.w) * w1 + (v2.tangent / v2.pos.w) * w2) * lerpDepth;

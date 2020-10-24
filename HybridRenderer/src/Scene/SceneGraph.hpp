@@ -36,8 +36,8 @@ public:
     //External Item Manipulation
     void AddObjectToGraph(Mesh* pObject, int sceneIdx);
     void AddScene(int sceneIdx);
-    static void SetCamera(const Elite::FPoint3& origin, uint32_t windowWidth = 640, uint32_t windowHeight = 480,
-                          float fovD = 45);
+    static void SetCamera(const glm::vec3& origin, uint32_t windowWidth = 640, uint32_t windowHeight = 480, float fovD = 45);
+    // ELITE_OLD static void SetCamera(const Elite::FPoint3& origin, uint32_t windowWidth = 640, uint32_t windowHeight = 480, float fovD = 45);
     static void ChangeCameraResolution(uint32_t width, uint32_t height);
 
     //Workers

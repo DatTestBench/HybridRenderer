@@ -23,44 +23,59 @@ Texture::~Texture()
 
 #pragma region Software
 
-Elite::RGBColor Texture::Sample(const Elite::FVector2& uv) const
+RGBColor Texture::Sample(const glm::vec2& uv) const
+// ELITE_OLD Elite::RGBColor Texture::Sample(const Elite::FVector2& uv) const
 {
 	Elite::FVector2 remappedUV;
 
-	remappedUV.x = Elite::Clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
-	remappedUV.y = Elite::Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
+	remappedUV.x = glm::clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
+	// ELITE_OLD remappedUV.x = Elite::Clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
+	remappedUV.y = glm::clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
+	// ELITE_OLD remappedUV.y = Elite::Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
 	SDL_Color color;
 
 	SDL_GetRGB(GetPixel(m_pSurface, static_cast<uint32_t>(remappedUV.x), static_cast<uint32_t>(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b);
 
-	return Elite::RGBColor(color.r / 255.f, color.g / 255.f, color.b / 255.f);
+	return RGBColor(color.r / 255.f, color.g / 255.f, color.b / 255.f);
+	// ELITE_OLD return Elite::RGBColor(color.r / 255.f, color.g / 255.f, color.b / 255.f);
 }
-Elite::FVector4 Texture::Sample4(const Elite::FVector2& uv) const
+glm::vec4 Texture::Sample4(const glm::vec2& uv) const
+// ELITE_OLD Elite::FVector4 Texture::Sample4(const Elite::FVector2& uv) const
 {
-	Elite::FVector2 remappedUV;
+	glm::vec2 remappedUV;
+	// ELITE_OLD Elite::FVector2 remappedUV;
 
-	remappedUV.x = Elite::Clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
-	remappedUV.y = Elite::Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
+	remappedUV.x = glm::clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
+	// ELITE_OLD remappedUV.x = Elite::Clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
+	remappedUV.y = glm::clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
+	// ELITE_OLD remappedUV.y = Elite::Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
 	SDL_Color color;
 
 	SDL_GetRGBA(GetPixel(m_pSurface, static_cast<uint32_t>(remappedUV.x), static_cast<uint32_t>(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b, &color.a);
 
-	return Elite::FVector4(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
+	return glm::vec4(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
+	// ELITE_OLD return Elite::FVector4(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
 }
 
-Elite::FVector3 Texture::SampleV(const Elite::FVector2& uv) const
+glm::vec3 Texture::SampleV(const glm::vec2& uv) const
+// ELITE_OLD Elite::FVector3 Texture::SampleV(const Elite::FVector2& uv) const
 {
-	Elite::FVector2 remappedUV;
+	glm::vec2 remappedUV;
+	// ELITE_OLD Elite::FVector2 remappedUV;
 
-	remappedUV.x = Elite::Clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
-	remappedUV.y = Elite::Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
+	remappedUV.x = glm::clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
+	// ELITE_OLD remappedUV.x = Elite::Clamp(uv.x, 0.f, 1.f) * m_pSurface->w;
+	remappedUV.y = glm::clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
+	// ELITE_OLD remappedUV.y = Elite::Clamp(uv.y, 0.f, 1.f) * m_pSurface->h;
 	SDL_Color color;
 
 	SDL_GetRGB(GetPixel(m_pSurface, static_cast<int32_t>(remappedUV.x), static_cast<int32_t>(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b);
 
-	return Elite::FVector3(color.r, color.g, color.b);
+	return glm::vec3(color.r, color.g, color.b);
+	// ELITE_OLD return Elite::FVector3(color.r, color.g, color.b);
 }
-float Texture::SampleF(const Elite::FVector2& uv, const int32_t component) const
+float Texture::SampleF(const glm::vec2& uv, const int32_t component) const
+// ELITE_OLD float Texture::SampleF(const Elite::FVector2& uv, const int32_t component) const
 {
 	switch (component)
 	{

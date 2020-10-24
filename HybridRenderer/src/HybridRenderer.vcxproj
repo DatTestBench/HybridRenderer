@@ -114,6 +114,7 @@
     <ClInclude Include="Helpers\EVector3.h" />
     <ClInclude Include="Helpers\EVector4.h" />
     <ClInclude Include="Helpers\GeneralHelpers.hpp" />
+    <ClInclude Include="Helpers\MathHelpers.hpp" />
     <ClInclude Include="Helpers\MeshParser.hpp" />
     <ClInclude Include="Helpers\RGBColor.hpp" />
     <ClInclude Include="Helpers\Singleton.hpp" />

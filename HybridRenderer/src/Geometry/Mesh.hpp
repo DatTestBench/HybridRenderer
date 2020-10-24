@@ -31,7 +31,8 @@ class Camera;
 class Mesh
 {
 public:
-    Mesh(ID3D11Device* pDevice, const std::string& modelPath, Material* pMaterial, const Elite::FPoint3& origin = {0, 0, 0});
+    Mesh(ID3D11Device* pDevice, const std::string& modelPath, Material* pMaterial, const glm::vec3& origin = {0, 0, 0});
+    // ELITE_OLD Mesh(ID3D11Device* pDevice, const std::string& modelPath, Material* pMaterial, const Elite::FPoint3& origin = {0, 0, 0});
     ~Mesh();
     DEL_ROF(Mesh)
 
@@ -47,22 +48,26 @@ public:
 
     //Setters
     /*General*/
-    void SetWorld(const Elite::FMatrix4& worldMat) { m_WorldMatrix = worldMat; }
+    void SetWorld(const glm::mat4& worldMat) { m_WorldMatrix = worldMat; }
+    // ELITE_OLD void SetWorld(const Elite::FMatrix4& worldMat) { m_WorldMatrix = worldMat; }
     /*Software*/
     void SetScreenSpaceVertices(const std::vector<VertexOutput>& vertices) { m_SSVertices = vertices; }
 
     //Getters
     /*General*/
-    [[nodiscard]] constexpr auto GetMaterialId() const noexcept -> int { return m_MaterialId; }
-    [[nodiscard]] auto GetWorld() const noexcept -> Elite::FMatrix4 { return m_WorldMatrix; }
+    [[nodiscard]] constexpr auto GetMaterialId() const noexcept -> uint32_t { return m_MaterialId; }
+    [[nodiscard]] auto GetWorld() const noexcept -> glm::mat4 { return m_WorldMatrix; }
+    // ELITE_OLD [[nodiscard]] auto GetWorld() const noexcept -> Elite::FMatrix4 { return m_WorldMatrix; }
     [[nodiscard]] constexpr auto GetVertices() const noexcept -> const std::vector<VertexInput>& { return m_VertexBuffer; }
 
 
 private:
     /*General*/
     uint32_t m_MaterialId;
-    Elite::FMatrix4 m_WorldMatrix;
-    Elite::FPoint3 m_Origin;
+    glm::mat4 m_WorldMatrix;
+    // ELITE_OLD Elite::FMatrix4 m_WorldMatrix;
+    glm::vec3 m_Origin;
+    // ELITE_OLD Elite::FPoint3 m_Origin;
     float m_RotationAngle;
     PrimitiveTopology m_Topology;
 
@@ -72,8 +77,10 @@ private:
     std::vector<VertexOutput> m_SSVertices;
 
     bool AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height);
-    bool IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const Elite::FPoint2& pixelPoint, TriangleResult& triResult) const noexcept;
-    Elite::RGBColor PixelShading(const VertexOutput& v) const noexcept;
+    bool IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const glm::vec2& pixelPoint, TriangleResult& triResult) const noexcept;
+    // ELITE_OLD bool IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const Elite::FPoint2& pixelPoint, TriangleResult& triResult) const noexcept;
+    RGBColor PixelShading(const VertexOutput& v) const noexcept;
+    // ELITE_OLD Elite::RGBColor PixelShading(const VertexOutput& v) const noexcept;
     BoundingBox MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, uint32_t maxScreenWidth = INT_MAX,
                                                                  uint32_t maxScreenHeight = INT_MAX) const noexcept;
 

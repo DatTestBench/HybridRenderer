@@ -47,26 +47,24 @@ public:
 
     //Workers
     /*Software*/
-    virtual Elite::RGBColor Shade(const VertexOutput& v,
-                                  const Elite::FVector3& lightDirection,
-                                  const Elite::FVector3& viewDirection,
-                                  const Elite::FVector3& normal) const = 0;
+    virtual RGBColor Shade(const VertexOutput& v, const glm::vec3& lightDirection, const glm::vec3& viewDirection, const glm::vec3& normal) const = 0;
+    // ELITE_OLD virtual Elite::RGBColor Shade(const VertexOutput& v, const Elite::FVector3& lightDirection, const Elite::FVector3& viewDirection, const Elite::FVector3& normal) const = 0;
 
     //Setters
     /*D3D*/
     virtual void SetMaps() = 0;
-    virtual void SetMatrices(const Elite::FMatrix4& projectionMat,
-                             const Elite::FMatrix4& inverseViewMat /*This is the OBN*/,
-                             const Elite::FMatrix4& worldMat) = 0;
+    virtual void SetMatrices(const glm::mat4& projectionMat, const glm::mat4& inverseViewMat /*This is the OBN*/, const glm::mat4& worldMat) = 0;
+    // ELITE_OLD virtual void SetMatrices(const Elite::FMatrix4& projectionMat, const Elite::FMatrix4& inverseViewMat /*This is the OBN*/, const Elite::FMatrix4& worldMat) = 0;
     virtual void SetScalars() = 0;
 
     //Getters
     /*General*/
-    [[nodiscard]] constexpr auto GetId() const noexcept -> int { return m_Id; }
+    [[nodiscard]] constexpr auto GetId() const noexcept -> uint32_t { return m_Id; }
     [[nodiscard]] constexpr auto HasTransparency() const noexcept -> bool { return m_HasTransparency; }
 
     /*Software*/
-    [[nodiscard]] virtual auto GetMappedNormal(const VertexOutput& v) const noexcept -> Elite::FVector3 { return v.normal; }
+    [[nodiscard]] virtual auto GetMappedNormal(const VertexOutput& v) const noexcept -> glm::vec3 { return v.normal; }
+    // ELITE_OLD [[nodiscard]] virtual auto GetMappedNormal(const VertexOutput& v) const noexcept -> Elite::FVector3 { return v.normal; }
 
     /*D3D*/
 

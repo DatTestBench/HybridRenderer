@@ -28,7 +28,8 @@ void SceneGraph::AddScene(const int sceneIdx)
     m_pScenes.try_emplace(sceneIdx);
 }
 
-void SceneGraph::SetCamera(const Elite::FPoint3& origin, const uint32_t windowWidth, const uint32_t windowHeight, const float fovD)
+void SceneGraph::SetCamera(const glm::vec3& origin, const uint32_t windowWidth, const uint32_t windowHeight, const float fovD)
+// ELITE_OLD void SceneGraph::SetCamera(const Elite::FPoint3& origin, const uint32_t windowWidth, const uint32_t windowHeight, const float fovD)
 {
     if (m_pCamera == nullptr)
         m_pCamera = new Camera(origin, windowWidth, windowHeight, fovD);

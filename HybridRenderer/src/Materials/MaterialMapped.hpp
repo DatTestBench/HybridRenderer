@@ -82,10 +82,11 @@ public:
 
     //Workers
     /*Software*/
-    Elite::RGBColor Shade(const VertexOutput& v, const Elite::FVector3& lightDirection,
-                          const Elite::FVector3& viewDirection, const Elite::FVector3& normal) const override
+    RGBColor Shade(const VertexOutput& v, const glm::vec3& lightDirection, const glm::vec3& viewDirection, const glm::vec3& normal) const override
+    // ELITE_OLD Elite::RGBColor Shade(const VertexOutput& v, const Elite::FVector3& lightDirection, const Elite::FVector3& viewDirection, const Elite::FVector3& normal) const override
     {
-        Elite::RGBColor tempColor = {0, 0, 0};
+        RGBColor tempColor = {0, 0, 0};
+        // ELITE_OLD Elite::RGBColor tempColor = {0, 0, 0};
 
         if (m_pDiffuseMap != nullptr)
             tempColor += m_pDiffuseMap->Sample(v.uv);
@@ -109,16 +110,20 @@ public:
             m_pSpecularMapVariable->SetResource(m_pSpecularMap->GetTextureView());
     }
 
-    void SetMatrices(const Elite::FMatrix4& projectionMat, const Elite::FMatrix4& inverseViewMat /*This is the OBN*/,
-                     const Elite::FMatrix4& worldMat) override
+    void SetMatrices(const glm::mat4& projectionMat, const glm::mat4& inverseViewMat /*This is the OBN*/, const glm::mat4& worldMat) override
+    // ELITE_OLD void SetMatrices(const Elite::FMatrix4& projectionMat, const Elite::FMatrix4& inverseViewMat /*This is the OBN*/, const Elite::FMatrix4& worldMat) override
     {
-        auto worldViewProjection = projectionMat * Inverse(inverseViewMat) * worldMat;
+        auto worldViewProjection = projectionMat * glm::inverse(inverseViewMat) * worldMat;
+        // ELITE_OLD auto worldViewProjection = projectionMat * Inverse(inverseViewMat) * worldMat;
         auto worldMatrix = worldMat;
         auto inverseViewMatrix = inverseViewMat;
 
-        m_pMatWorldViewProjVariable->SetMatrix(&worldViewProjection(0, 0));
-        m_pMatWorldVariable->SetMatrix(&worldMatrix(0, 0));
-        m_pMatInverseViewVariable->SetMatrix(&inverseViewMatrix(0, 0));
+        m_pMatWorldViewProjVariable->SetMatrix(&worldViewProjection[0][0]);
+        // ELITE_OLD m_pMatWorldViewProjVariable->SetMatrix(&worldViewProjection(0, 0));
+        m_pMatWorldVariable->SetMatrix(&worldMatrix[0][0]);
+        // ELITE_OLD m_pMatWorldVariable->SetMatrix(&worldMatrix(0, 0));
+        m_pMatInverseViewVariable->SetMatrix(&inverseViewMatrix[0][0]);
+        // ELITE_OLD m_pMatInverseViewVariable->SetMatrix(&inverseViewMatrix(0, 0));
     }
 
     void SetScalars() override
@@ -128,16 +133,20 @@ public:
 
     //Getters
     /*D3D*/
-    Elite::FVector3 GetMappedNormal(const VertexOutput& v) const noexcept override
+    glm::vec3 GetMappedNormal(const VertexOutput& v) const noexcept override
+    // ELITE_OLD Elite::FVector3 GetMappedNormal(const VertexOutput& v) const noexcept override
     {
         if (m_pNormalMap == nullptr)
             return v.normal;
 
-        const auto binormal = Cross(v.tangent, v.normal);
-        auto tangentSpaceAxis = Elite::FMatrix3(v.tangent, binormal, v.normal);
+        const auto binormal = glm::cross(v.tangent, v.normal);
+        // ELITE_OLD const auto binormal = Cross(v.tangent, v.normal);
+        auto tangentSpaceAxis = glm::mat3(v.tangent, binormal, v.normal);
+        // ELITE_OLD auto tangentSpaceAxis = Elite::FMatrix3(v.tangent, binormal, v.normal);
         auto mappedNormal = m_pNormalMap->SampleV(v.uv);
         mappedNormal /= 255.f;
-        mappedNormal = 2.f * mappedNormal - Elite::FVector3(1.f, 1.f, 1.f);
+        mappedNormal = 2.f * mappedNormal - glm::vec3(1.f, 1.f, 1.f);
+        // ELITE_OLD mappedNormal = 2.f * mappedNormal - Elite::FVector3(1.f, 1.f, 1.f);
         mappedNormal = tangentSpaceAxis * mappedNormal;
 
         return mappedNormal;

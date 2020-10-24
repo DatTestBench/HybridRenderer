@@ -10,6 +10,9 @@
 #include "EMathUtilities.h"
 #include <algorithm>
 
+#define USE_ELITE_COLOR 0
+
+#if USE_ELITE_COLOR
 namespace Elite
 {
 	struct RGBColor final
@@ -101,4 +104,16 @@ namespace Elite
 		return c;
 	}
 }
+#else
+
+inline void MaxToOne(glm::vec3& c) noexcept
+{
+	const auto maxValue = std::max(c.r, std::max(c.g, c.b));
+	if (maxValue > 1.f)
+		c /= maxValue;
+}
+
+using RGBColor = glm::vec3;
+#endif
+
 #endif // !RGBCOLOR_HPP
