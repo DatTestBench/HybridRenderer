@@ -4,6 +4,7 @@
 
 //Standard includes
 #include <iostream>
+#include <memory>
 
 //Project includes
 #include "Helpers/Timer.hpp"
@@ -37,11 +38,11 @@ void PrintToolTip()
 	std::cout << "\tY: Toggle object rotation on/off\n";
 }
 
-int main(int argc, char* args[])
+int main(int argc, char* argv[])
 {
 	//Unreferenced parameters
 	(void)argc;
-	(void)args;
+	(void)argv;
 
 	//Create window + surfaces
 	SDL_Init(SDL_INIT_VIDEO);
@@ -65,7 +66,7 @@ int main(int argc, char* args[])
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	
 	auto pTimer{ std::make_unique<Timer>() };
-	const auto pRenderer{ std::make_unique<Renderer>(pWindow) };
+	auto pRenderer{ std::make_unique<Renderer>(pWindow) };
 	PrintToolTip();
 	
 	//Start loop
@@ -99,7 +100,7 @@ int main(int argc, char* args[])
 				if (e.key.keysym.scancode == SDL_SCANCODE_R)
 				{
 					SceneGraph::GetInstance()->ToggleRenderSystem();
-					pRenderer->SwapRenderSystem();
+					pRenderer->SetImGuiRenderSystem();
 				}
 				if (e.key.keysym.scancode == SDL_SCANCODE_M)
 					SceneGraph::GetInstance()->ToggleRenderType();
@@ -132,6 +133,7 @@ int main(int argc, char* args[])
 	//Shutdown "framework"
 	SceneGraph::GetInstance()->Destroy();
 	MaterialManager::GetInstance()->Destroy();
+	pRenderer.reset(); // todo fix unique ptr setup, it's a smart pointer, so we shouldn't have to release it manually. One option might be destroying imgui context in the renderer itself?
 	ImGui::DestroyContext();
 	ShutDown(pWindow);
 	return 0;

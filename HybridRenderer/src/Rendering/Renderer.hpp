@@ -18,7 +18,7 @@ public:
     DEL_ROF(Renderer)
 
     void Render() const;
-    void SwapRenderSystem() const;
+    void SetImGuiRenderSystem(bool isInitialSetup = false) const;
 private:
     /*General*/
     SDL_Window* m_pWindow;
@@ -30,11 +30,14 @@ private:
     SceneGraph* m_pSceneGraph;
 
     /*Software*/
-    SDL_Surface* m_pFrontBuffer = nullptr;
-    SDL_Surface* m_pBackBuffer = nullptr;
-    uint32_t* m_pBackBufferPixels = nullptr;
+    SDL_Surface* m_pSoftwareBuffer = nullptr;
+    uint32_t* m_pSoftwareBufferPixels = nullptr;
     float* m_pDepthBuffer = nullptr;
 
+    //Setup
+    void SetupSoftwarePipeline() noexcept;
+    void ImplementSoftwareWithOpenGL() const noexcept;
+    
     /*D3D*/
     ID3D11Device* m_pDevice;
     ID3D11DeviceContext* m_pDeviceContext;
@@ -45,7 +48,11 @@ private:
     ID3D11RenderTargetView* m_pRenderTargetView;
     ID3D11Texture2D* m_pDepthStencilBuffer;
     ID3D11DepthStencilView* m_pDepthStencilView;
+
+
+    void SetupDirectXPipeline() noexcept;
     HRESULT InitializeDirectX();
+    void DirectXCleanup() const noexcept;
 };
 
 
