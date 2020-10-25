@@ -9,6 +9,7 @@
 #include <sstream>
 
 //Project includes
+#include "Debugging/Logger.hpp"
 #include "Helpers/Vertex.hpp"
 
 
@@ -22,15 +23,24 @@ public:
     {
         m_pTechnique = m_pEffect->GetTechniqueByName("DefaultTechnique");
         if (!m_pTechnique->IsValid())
-            std::wcout << L"Technique not valid\n";
+        {
+            LOG(LEVEL_ERROR, "Material::Material()", "Technique DefaultTechnique not found")
+            // LOG_OLD std::wcout << L"Technique not valid\n";
+        }
 
         m_pMatWorldViewProjVariable = m_pEffect->GetVariableByName("gWorldViewProj")->AsMatrix();
         if (!m_pMatWorldViewProjVariable->IsValid())
-            std::wcout << L"m_pMatWorldViewProjVariable not valid\n";
+        {
+            LOG(LEVEL_ERROR, "Material::Material()", "Variable gWorldViewProj not found")
+            // LOG_OLD std::wcout << L"m_pMatWorldViewProjVariable not valid\n";
+        }
 
         m_pSamplerVariable = m_pEffect->GetVariableByName("gSampleType")->AsScalar();
         if (!m_pSamplerVariable->IsValid())
-            std::wcout << L"m_pSamplerVariable not valid\n";
+        {
+            LOG(LEVEL_ERROR, "Material::Material()", "Variable gSampleType not found")
+            // LOG_OLD std::wcout << L"m_pSamplerVariable not valid\n";
+        } 
     }
 
     virtual ~Material()
@@ -118,10 +128,13 @@ protected:
                 pErrorBlob->Release();
                 pErrorBlob = nullptr;
 
+                // todo add compat for wstring in logger (probably just converting from string to wstring internally
+                // LOG(LEVEL_ERROR, "Material::LoadEffect()", ss)
                 std::wcout << ss.str() << std::endl;
             }
             else
             {
+                //LOG(LEVEL_ERROR, "Material::LoadEffect()", "EffectLoader: Failed to CreateEventFromFile!")
                 std::wstringstream ss;
                 ss << "EffectLoader: Failed to CreateEventFromFile!\nPath: " << effectFile;
                 std::wcout << ss.str() << std::endl;

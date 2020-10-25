@@ -48,14 +48,17 @@ Camera::Camera(const glm::vec3& origin, const uint32_t windowWidth, const uint32
 /*General*/
 void Camera::Update(float dT)
 {
+
     UpdateLookAtMatrix(dT);
 }
 
 void Camera::UpdateLookAtMatrix(float dT)
 {
+
+
     glm::ivec2 dMove;
     // ELITE_OLD Elite::IVector2 dMove;
-
+        
     const auto buttonMask = SDL_GetRelativeMouseState(&dMove.x, &dMove.y);
     const auto* keyState = SDL_GetKeyboardState(nullptr);
 
@@ -64,71 +67,73 @@ void Camera::UpdateLookAtMatrix(float dT)
     glm::vec3 worldMovement{};
     // ELITE_OLD Elite::FVector3 worldMovement{};
 
-    //Vertical (Y) movement in world space
-    if (buttonMask == (SDL_BUTTON_LMASK | SDL_BUTTON_RMASK))
+    // Don't update the movement if we're hovering over any ImGui UI (this is not an ideal place to do this, but it works
+    if (!ImGui::GetIO().WantCaptureMouse)
     {
-        //m_Origin.y -= m_MovementSensitivity * dMove.y;
-        worldMovement.y -= m_MovementSensitivity * dMove.y;
-    }
-    //Vertical (Y) movement in local space
-    if (buttonMask == (SDL_BUTTON_LMASK | SDL_BUTTON_MMASK))
-    {
-        movement.y += m_MovementSensitivity * dMove.y;
-    }
-    //Horizontal rotation + Horizontal movement (Z) in local space
-    if (buttonMask == SDL_BUTTON_LMASK)
-    {
-        m_Yaw -= dMove.x * static_cast<float>(E_TO_RADIANS) * m_RotationSensitivity;
-        movement.z += m_MovementSensitivity * dMove.y;
-    }
-    //Horizontal movement (X) in local space + Horizontal movement (Z) in local space
-    if (buttonMask == SDL_BUTTON_MMASK)
-    {
-        movement.x += m_MovementSensitivity * dMove.x;
-        movement.z += m_MovementSensitivity * dMove.y;
-    }
-    //Free cam rotation
-    if (buttonMask == SDL_BUTTON_RMASK)
-    {
-        m_Yaw -= dMove.x * static_cast<float>(E_TO_RADIANS) * m_RotationSensitivity;
-        m_Pitch -= dMove.y * static_cast<float>(E_TO_RADIANS) * m_RotationSensitivity;
-    }
+        //Vertical (Y) movement in world space
+        if (buttonMask == (SDL_BUTTON_LMASK | SDL_BUTTON_RMASK))
+        {
+            //m_Origin.y -= m_MovementSensitivity * dMove.y;
+            worldMovement.y -= m_MovementSensitivity * dMove.y;
+        }
+        //Vertical (Y) movement in local space
+        if (buttonMask == (SDL_BUTTON_LMASK | SDL_BUTTON_MMASK))
+        {
+            movement.y += m_MovementSensitivity * dMove.y;
+        }
+        //Horizontal rotation + Horizontal movement (Z) in local space
+        if (buttonMask == SDL_BUTTON_LMASK)
+        {
+            m_Yaw -= dMove.x * static_cast<float>(E_TO_RADIANS) * m_RotationSensitivity;
+            movement.z += m_MovementSensitivity * dMove.y;
+        }
+        //Horizontal movement (X) in local space + Horizontal movement (Z) in local space
+        if (buttonMask == SDL_BUTTON_MMASK)
+        {
+            movement.x += m_MovementSensitivity * dMove.x;
+            movement.z += m_MovementSensitivity * dMove.y;
+        }
+        //Free cam rotation
+        if (buttonMask == SDL_BUTTON_RMASK)
+        {
+            m_Yaw -= dMove.x * static_cast<float>(E_TO_RADIANS) * m_RotationSensitivity;
+            m_Pitch -= dMove.y * static_cast<float>(E_TO_RADIANS) * m_RotationSensitivity;
+        }
 
-    //Keyboard movement (Y) in world space
-    if (keyState[SDL_SCANCODE_E])
-    {
-        //m_Origin.y += m_MovementSensitivity * dT;
-        worldMovement.y += m_MovementSensitivity;
-    }
-    if (keyState[SDL_SCANCODE_Q])
-    {
-        //m_Origin.y -= m_MovementSensitivity * dT;
-        worldMovement.y -= m_MovementSensitivity;
-    }
+        //Keyboard movement (Y) in world space
+        if (keyState[SDL_SCANCODE_E])
+        {
+            //m_Origin.y += m_MovementSensitivity * dT;
+            worldMovement.y += m_MovementSensitivity;
+        }
+        if (keyState[SDL_SCANCODE_Q])
+        {
+            //m_Origin.y -= m_MovementSensitivity * dT;
+            worldMovement.y -= m_MovementSensitivity;
+        }
 
 
-    //Keyboard movement (X/Z) in local space
-    if (keyState[SDL_SCANCODE_W])
-    {
-        movement.z -= m_MovementSensitivity;
+        //Keyboard movement (X/Z) in local space
+        if (keyState[SDL_SCANCODE_W])
+        {
+            movement.z -= m_MovementSensitivity;
+        }
+        if (keyState[SDL_SCANCODE_S])
+        {
+            movement.z += m_MovementSensitivity;
+        }
+        if (keyState[SDL_SCANCODE_A])
+        {
+            movement.x -= m_MovementSensitivity;
+        }
+        if (keyState[SDL_SCANCODE_D])
+        {
+            movement.x += m_MovementSensitivity;
+        }
     }
-    if (keyState[SDL_SCANCODE_S])
-    {
-        movement.z += m_MovementSensitivity;
-    }
-    if (keyState[SDL_SCANCODE_A])
-    {
-        movement.x -= m_MovementSensitivity;
-    }
-    if (keyState[SDL_SCANCODE_D])
-    {
-        movement.x += m_MovementSensitivity;
-    }
-
     //Apply local space movement (m_LookAt needs to be transposed for D3D because...reasons??? - 
     //seemingly because vector transformation need the transposed inverse of the world matrix)
     //Some movement is still broken when y < 0
-
     switch (m_RenderSystem)
     {
     case Software:

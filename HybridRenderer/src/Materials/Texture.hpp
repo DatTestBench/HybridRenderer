@@ -42,4 +42,4 @@ private:
     void LoadTexture(ID3D11Device* pDevice, SDL_Surface* pSurface);
 };
 
-#endif // !ELITE_TEXTURE
+#endif // !TEXTURE_HPP

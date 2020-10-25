@@ -15,7 +15,7 @@
 #include "Rendering/Renderer.hpp"
 #include "Scene/SceneGraph.hpp"
 #include "Rendering/Camera.hpp"
-
+#include "Helpers/magic_enum.hpp"
 
 
 
@@ -36,6 +36,11 @@ void PrintToolTip()
 	std::cout << "\tM: Toggle rendertype between color/depth-buffer (only available in software)\n";
 	std::cout << "\t1/2: Increase/decrease scene respectively (" << SceneGraph::GetInstance()->AmountOfScenes() << " scene(s) currently loaded)\n";
 	std::cout << "\tY: Toggle object rotation on/off\n";
+}
+
+void ShowSettingsWindow() noexcept
+{
+
 }
 
 int main(int argc, char* argv[])
@@ -63,10 +68,11 @@ int main(int argc, char* argv[])
 
 	//Initialize "framework"
 	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	
-	auto pTimer{ std::make_unique<Timer>() };
-	auto pRenderer{ std::make_unique<Renderer>(pWindow) };
+	auto pTimer = new Timer;
+	const auto pRenderer = new Renderer(pWindow);
+	SceneGraph::GetInstance()->SetTimer(pTimer);
+	
 	PrintToolTip();
 	
 	//Start loop
@@ -133,7 +139,7 @@ int main(int argc, char* argv[])
 	//Shutdown "framework"
 	SceneGraph::GetInstance()->Destroy();
 	MaterialManager::GetInstance()->Destroy();
-	pRenderer.reset(); // todo fix unique ptr setup, it's a smart pointer, so we shouldn't have to release it manually. One option might be destroying imgui context in the renderer itself?
+	SafeDelete(pRenderer);
 	ImGui::DestroyContext();
 	ShutDown(pWindow);
 	return 0;

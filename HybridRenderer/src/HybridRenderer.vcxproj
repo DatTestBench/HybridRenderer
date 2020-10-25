@@ -85,6 +85,7 @@
     <Folder Include="Lighting" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Debugging\Logger.cpp" />
     <ClCompile Include="Geometry\Mesh.cpp" />
     <ClCompile Include="Helpers\Timer.cpp" />
     <ClCompile Include="ImGui\imgui.cpp">
@@ -119,6 +120,7 @@
     <ClCompile Include="Scene\SceneGraph.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Debugging\Logger.hpp" />
     <ClInclude Include="Geometry\Mesh.hpp" />
     <ClInclude Include="Helpers\EMath.h" />
     <ClInclude Include="Helpers\EMathUtilities.h" />
@@ -135,6 +137,7 @@
     <ClInclude Include="Helpers\EVector3.h" />
     <ClInclude Include="Helpers\EVector4.h" />
     <ClInclude Include="Helpers\GeneralHelpers.hpp" />
+    <ClInclude Include="Helpers\magic_enum.hpp" />
     <ClInclude Include="Helpers\MathHelpers.hpp" />
     <ClInclude Include="Helpers\MeshParser.hpp" />
     <ClInclude Include="Helpers\RGBColor.hpp" />

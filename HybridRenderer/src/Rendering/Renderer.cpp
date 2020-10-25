@@ -9,10 +9,12 @@
 #include "ImGui/imgui_impl_opengl2.h"
 #pragma warning (pop)
 
+#include "Debugging/Logger.hpp"
 #include "Materials/MaterialManager.hpp"
 #include "Materials/MaterialMapped.hpp"
 #include "Materials/MaterialFlat.hpp"
 #include "Rendering/Camera.hpp"
+#include "Helpers/Timer.hpp"
 
 Renderer::Renderer(SDL_Window* pWindow)
 	: m_pWindow{ pWindow }
@@ -65,9 +67,17 @@ Renderer::~Renderer()
 	SDL_GL_DeleteContext(SDL_GL_GetCurrentContext());
 }
 
-void Renderer::Render() const
+void Renderer::Render() const 
 {
 	// ELITE_OLD Elite::RGBColor clearColor{};
+
+	if (m_pSceneGraph->ShouldUpdateRenderSystem())
+	{
+		SetImGuiRenderSystem();
+		m_pSceneGraph->GetCamera()->ToggleRenderSystem(m_pSceneGraph->GetRenderSystem());
+		m_pSceneGraph->ConfirmRenderSystemUpdate();
+	}
+	
 	switch (m_pSceneGraph->GetRenderSystem())
 	{
 	case RenderSystem::Software:
@@ -91,7 +101,6 @@ void Renderer::Render() const
 			ImGui::NewFrame();
 			
 			// Render
-			ImGui::ShowDemoWindow();
 			for (auto& o : m_pSceneGraph->GetCurrentSceneObjects())
 			{
 				m_pSceneGraph->GetCamera()->MakeScreenSpace(o);
@@ -101,6 +110,9 @@ void Renderer::Render() const
 
 			// Render software render as background image to allow ImGui overlay
 			ImplementSoftwareWithOpenGL();
+
+			Logger::GetInstance()->OutputLog();
+			SceneGraph::GetInstance()->RenderDebugUI();
 			
 			// Present ImGui data before final OpenGL render
 			ImGui::Render();
@@ -127,12 +139,14 @@ void Renderer::Render() const
 			ImGui::NewFrame();
 		
 			//Render
-			ImGui::ShowDemoWindow();
 			for (auto& mesh : m_pSceneGraph->GetCurrentSceneObjects())
 			{
 				mesh->Render(m_pDeviceContext, m_pSceneGraph->GetCamera());
 			}
 
+			Logger::GetInstance()->OutputLog();
+			SceneGraph::GetInstance()->RenderDebugUI();
+			
 			// Present ImGui data before final DX render
 			ImGui::Render();	
 			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -244,12 +258,15 @@ void Renderer::SetupDirectXPipeline() noexcept
 	if (FAILED(result))
 	{
 		m_IsInitialized = false;
-		std::cout << "DirectX initialization failed\n";
+		// todo log hresult
+		LOG(LEVEL_ERROR, "Renderer::SetupDirectXPipeline()", "DirectX initialization failed")
+		// LOG_OLD std::cout << "DirectX initialization failed\n";
 	}
 	else
 	{
 		m_IsInitialized = true;
-		std::cout << "DirectX is ready\n";
+		LOG(LEVEL_SUCCESS, "Renderer::SetupDirectXPipeline()", "DirectX is ready")
+		// LOG_OLD std::cout << "DirectX is ready\n";
 	}
 }
 
@@ -381,6 +398,7 @@ void Renderer::DirectXCleanup() const noexcept
 		pDebug->Release();
 		pDebug = nullptr;
 	}
+	// todo log hresult
 	(void) hr;
 #endif
 	if (m_pDevice)

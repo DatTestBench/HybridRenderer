@@ -19,11 +19,17 @@ public:
     {
         m_pDiffuseMapVariable = m_pEffect->GetVariableByName("gDiffuseMap")->AsShaderResource();
         if (!m_pDiffuseMapVariable->IsValid())
-            std::wcout << L"Variable gDiffuseMap not found\n";
-
+        {
+            LOG(LEVEL_ERROR, "MaterialFlat::MaterialFlat()", "Variable gDiffuseMap not found")
+            // LOG_OLD std::wcout << L"Variable gDiffuseMap not found\n";
+        }
+        
         m_pMatWorldVariable = m_pEffect->GetVariableByName("gWorldMatrix")->AsMatrix();
         if (!m_pMatWorldVariable->IsValid())
-            std::wcout << L"Variable gWorldMatrix not found\n";
+        {
+            LOG(LEVEL_ERROR, "MaterialFlat::MaterialFlat()", "Variable gWorldMatrix not found")
+            // LOG_OLD std::wcout << L"Variable gWorldMatrix not found\n";
+        }
     }
 
     virtual ~MaterialFlat()

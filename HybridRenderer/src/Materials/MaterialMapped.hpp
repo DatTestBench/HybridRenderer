@@ -22,31 +22,53 @@ public:
     {
         m_pDiffuseMapVariable = m_pEffect->GetVariableByName("gDiffuseMap")->AsShaderResource();
         if (!m_pDiffuseMapVariable->IsValid())
-            std::wcout << L"Variable gDiffuseMap not found\n";
+        {
+            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gDiffuseMap not found")
+            // LOG_OLD std::wcout << L"Variable gDiffuseMap not found\n";
+        }          
 
         m_pNormalMapVariable = m_pEffect->GetVariableByName("gNormalMap")->AsShaderResource();
         if (!m_pNormalMapVariable->IsValid())
-            std::wcout << L"Variable gNormalMap not found\n";
+        {
+            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gNormalMap not found")
+            // LOG_OLD std::wcout << L"Variable gNormalMap not found\n";
+        }          
 
         m_pGlossinessMapVariable = m_pEffect->GetVariableByName("gGlossinessMap")->AsShaderResource();
         if (!m_pGlossinessMapVariable->IsValid())
-            std::wcout << L"Variable gGlossinessMap not found\n";
+        {
+            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gGlossinessMap not found")
+            // LOG_OLD std::wcout << L"Variable gGlossinessMap not found\n";
+        }            
 
         m_pSpecularMapVariable = m_pEffect->GetVariableByName("gSpecularMap")->AsShaderResource();
         if (!m_pSpecularMapVariable->IsValid())
-            std::wcout << L"Variable gSpecularMap not found\n";
+        {
+            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gSpecularMap not found")
+            // LOG_OLD std::wcout << L"Variable gSpecularMap not found\n";
+        }          
 
         m_pMatWorldVariable = m_pEffect->GetVariableByName("gWorldMatrix")->AsMatrix();
         if (!m_pMatWorldVariable->IsValid())
-            std::wcout << L"Variable gWorldMatrix not found\n";
+        {
+            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gWorldMatrix not found")
+            // LOG_OLD std::wcout << L"Variable gWorldMatrix not found\n";
+        }            
 
         m_pMatInverseViewVariable = m_pEffect->GetVariableByName("gInverseViewMatrix")->AsMatrix();
         if (!m_pMatInverseViewVariable->IsValid())
-            std::wcout << L"Variable gInverseViewMatrix not found\n";
+        {
+            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gInverseViewMatrix not found")
+            // LOG_OLD std::wcout << L"Variable gInverseViewMatrix not found\n";
+        }
 
         m_pShininessVariable = m_pEffect->GetVariableByName("gShininess")->AsScalar();
         if (!m_pShininessVariable->IsValid())
-            std::wcout << L"Variable gShininess not found\n";
+        {
+            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gShininess not found")
+            // LOG_OLD std::wcout << L"Variable gShininess not found\n";
+        }
+            
     }
 
     virtual ~MaterialMapped()

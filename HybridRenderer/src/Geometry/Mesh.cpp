@@ -164,7 +164,7 @@ bool Mesh::AssembleTriangle(const uint32_t idx, SDL_Surface* backBuffer, uint32_
                 {
                     auto vInterpolated = Interpolate(v0, v1, v2, triResult);
 
-                    switch (SceneGraph::GetInstance()->GetRenderSystem())
+                    switch (SceneGraph::GetInstance()->GetRenderType())
                     {
                     case Color:
                         finalColor = PixelShading(vInterpolated);

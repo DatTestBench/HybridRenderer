@@ -6,6 +6,7 @@
 // Project includes
 #include "Scene/SceneGraph.hpp"
 
+class Timer;
 struct SDL_Window;
 struct SDL_Surface;
 

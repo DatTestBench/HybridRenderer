@@ -24,7 +24,8 @@ void MaterialManager::ChangeFilterType()
 {
     if (SceneGraph::GetInstance()->GetRenderSystem() == Software)
     {
-        std::cout << "FilterType can not be changed in software mode\n";
+        LOG(LEVEL_WARNING, "MaterialManager::ChangeFilterType()", "FilterType can not be changed in Software Mode")
+        // LOG_OLD std::cout << "FilterType can not be changed in software mode\n";
         return;
     }
 
@@ -33,13 +34,16 @@ void MaterialManager::ChangeFilterType()
     switch (m_SamplerType)
     {
     case SPoint:
-        std::cout << "Point\n";
+        LOG(LEVEL_INFO, "MaterialManager::ChangeFilterType()", "Sample type: Point")
+        // LOG_OLD std::cout << "Point\n";
         break;
     case SLinear:
-        std::cout << "Linear\n";
+        LOG(LEVEL_INFO, "MaterialManager::ChangeFilterType()", "Sample type: Linear")
+        // LOG_OLD std::cout << "Linear\n";
         break;
     case SAnisotropic:
-        std::cout << "Anisotropic\n";
+        LOG(LEVEL_INFO, "MaterialManager::ChangeFilterType()", "Sample type: Anisotropic")
+        // LOG_OLD std::cout << "Anisotropic\n";
         break;
     case SamplerSize:
         break;

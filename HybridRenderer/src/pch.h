@@ -3,6 +3,8 @@
 #include <iostream>
 #include <algorithm>
 #include <memory>
+#include <string>
+#include <string_view>
 #define NOMINMAX  //for directx
 
 // SDL Headers
@@ -13,6 +15,11 @@
 #include <SDL_opengl.h>
 #include <GL\GLU.h>
 #include <SDL_image.h>
+
+// ImGui
+#pragma warning (push, 0)
+#include "ImGui/imgui.h"
+#pragma warning (pop)
 
 // DirectX Headers
 #include <dxgi.h>

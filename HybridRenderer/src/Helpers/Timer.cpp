@@ -97,3 +97,12 @@ void Timer::Stop()
 		m_IsStopped = true;
 	}
 }
+
+void Timer::PrintFPS() const noexcept
+{
+	if (ImGui::Begin("FPSCounter"))
+	{
+		ImGui::Text(std::to_string(m_FPS).c_str());
+	}
+	ImGui::End();
+}

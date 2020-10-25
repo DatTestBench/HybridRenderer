@@ -23,6 +23,8 @@ public:
     void Update();
     void Stop();
 
+    void PrintFPS() const noexcept;
+    
     [[nodiscard]] constexpr auto GetFPS() const noexcept -> uint32_t { return m_FPS; }
     [[nodiscard]] constexpr auto GetElapsed() const noexcept -> float { return m_ElapsedTime; }
     [[nodiscard]] constexpr auto GetTotal() const noexcept -> float { return m_TotalTime; }
