@@ -18,13 +18,9 @@ public:
 
     /*Software*/
     RGBColor Sample(const glm::vec2& uv) const;
-    // ELITE_OLD Elite::RGBColor Sample(const Elite::FVector2& uv) const;
     glm::vec4 Sample4(const glm::vec2& uv) const;
-    // ELITE_OLD Elite::FVector4 Sample4(const Elite::FVector2& uv) const;
     glm::vec3 SampleV(const glm::vec2& uv) const;
-    // ELITE_OLD Elite::FVector3 SampleV(const Elite::FVector2& uv) const;
     float SampleF(const glm::vec2& uv, int component = 0) const;
-    // ELITE_OLD float SampleF(const Elite::FVector2& uv, int component = 0) const;
 
     /*D3D*/
     [[nodiscard]] constexpr auto GetTextureView() const noexcept -> ID3D11ShaderResourceView* { return m_pTextureResourceView; }

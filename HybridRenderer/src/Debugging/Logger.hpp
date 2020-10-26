@@ -61,7 +61,7 @@ public:
 
 	/**
 	 * Log Function 
-	 * @param level <T> LogLevel
+	 * @param Level (Template) LogLevel
 	 * @param header Name of the scope this log was called in
 	 * */
 	template<LogLevel Level>

@@ -14,14 +14,13 @@
 #include "Materials/MaterialMapped.hpp"
 #include "Materials/MaterialFlat.hpp"
 #include "Rendering/Camera.hpp"
-#include "Helpers/Timer.hpp"
 
 Renderer::Renderer(SDL_Window* pWindow)
-	: m_pWindow{ pWindow }
-	, m_Width{}
-	, m_Height{}
-	, m_IsInitialized{ false }
-	, m_pSceneGraph{ SceneGraph::GetInstance() }
+	: m_pWindow(pWindow)
+	, m_Width()
+	, m_Height()
+	, m_IsInitialized(false)
+	, m_pSceneGraph(SceneGraph::GetInstance())
 {
 	//Initialize
 	
@@ -31,7 +30,6 @@ Renderer::Renderer(SDL_Window* pWindow)
 	m_Width = static_cast<uint32_t>(width);
 	m_Height = static_cast<uint32_t>(height);
 	m_pSceneGraph->SetCamera(glm::vec3(0, 5, 65), m_Width, m_Height, 60.f);
-	// ELITE_OLD m_pSceneGraph->SetCamera(Elite::FPoint3(0, 5, 65), m_Width, m_Height, 60.f);
 	
 	/*Software*/
 	SetupSoftwarePipeline();
@@ -46,9 +44,7 @@ Renderer::Renderer(SDL_Window* pWindow)
 	MaterialManager::GetInstance()->AddMaterial(new MaterialFlat(m_pDevice, L"./Resources/Shaders/FlatTransparancy.fx", "./Resources/Textures/fireFX_diffuse.png", 2, true));
 	m_pSceneGraph->AddScene(0);
 	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/vehicle.obj", MaterialManager::GetInstance()->GetMaterial(1), glm::vec3(0, 0, 0)), 0);
-	// ELITE_OLD m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/vehicle.obj", MaterialManager::GetInstance()->GetMaterial(1), Elite::FPoint3(0, 0, 0)), 0);
 	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/fireFX.obj", MaterialManager::GetInstance()->GetMaterial(2), glm::vec3(0, 0, 0)), 0);
-	// ELITE_OLD m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/fireFX.obj", MaterialManager::GetInstance()->GetMaterial(2), Elite::FPoint3(0, 0, 0)), 0);
 }
 
 Renderer::~Renderer()
@@ -58,9 +54,7 @@ Renderer::~Renderer()
 	ImGui_ImplOpenGL2_Shutdown();
 	ImGui_ImplSDL2_Shutdown();
 
-
 	DirectXCleanup();
-
 
 	// Software Cleanup
 	SafeDelete(m_pDepthBuffer);
@@ -69,7 +63,6 @@ Renderer::~Renderer()
 
 void Renderer::Render() const 
 {
-	// ELITE_OLD Elite::RGBColor clearColor{};
 
 	if (m_pSceneGraph->ShouldUpdateRenderSystem())
 	{
@@ -85,7 +78,7 @@ void Renderer::Render() const
 			const auto clearColor = RGBColor(128.f, 128.f, 128.f);
 
 			// Clear OpenGL and software buffers
-			//glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
+			glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			SDL_LockSurface(m_pSoftwareBuffer);
 
@@ -129,7 +122,6 @@ void Renderer::Render() const
 			
 			// Clear Buffers
 			const auto clearColor = RGBColor(0.f, 0.f, 0.3f);
-			// ELITE_OLD clearColor = Elite::RGBColor(0.f, 0.f, 0.3f);
 			m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, &clearColor.r);
 			m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -260,13 +252,11 @@ void Renderer::SetupDirectXPipeline() noexcept
 		m_IsInitialized = false;
 		// todo log hresult
 		LOG(LEVEL_ERROR, "Renderer::SetupDirectXPipeline()", "DirectX initialization failed")
-		// LOG_OLD std::cout << "DirectX initialization failed\n";
 	}
 	else
 	{
 		m_IsInitialized = true;
 		LOG(LEVEL_SUCCESS, "Renderer::SetupDirectXPipeline()", "DirectX is ready")
-		// LOG_OLD std::cout << "DirectX is ready\n";
 	}
 }
 

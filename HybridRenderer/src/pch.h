@@ -29,8 +29,7 @@
 
 #include <glm/glm.hpp>
 
-//Elite headers
-#include "Helpers/EMath.h"
+// Helper Headers
 #include "Helpers/RGBColor.hpp"
 
 // Macros

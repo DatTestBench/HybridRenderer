@@ -45,18 +45,15 @@ void Mesh::Update(const float dT, const float rotationSpeed) noexcept
     {
     case Software:
         rotationMatrix = glm::eulerAngleY(m_RotationAngle);
-        // ELITE_OLD rotationMatrix = Elite::MakeRotationY(m_RotationAngle);
         break;
     case D3D:
         //Flipping the axis the model is rotating around, because DirectX is lefthanded!
         rotationMatrix = glm::rotate(m_RotationAngle, glm::vec3(0, -1, 0));
-         // ELITE_OLD rotationMatrix = MakeRotation(m_RotationAngle, Elite::FVector3(0, -1, 0));
         break;
     default:
         break;
     }
     m_WorldMatrix = glm::translate(m_Origin) * rotationMatrix * glm::scale(glm::vec3(1.f, 1.f, 1.f));
-    // ELITE_OLD m_WorldMatrix = MakeTranslation(Elite::FVector3(m_Origin)) * Elite::FMatrix4(rotationMatrix) * Elite::FMatrix4(Elite::MakeScale(1.f, 1.f, 1.f));
 }
 
 /*Software*/
@@ -147,7 +144,6 @@ bool Mesh::AssembleTriangle(const uint32_t idx, SDL_Surface* backBuffer, uint32_
     const auto boundingBox = MakeBoundingBox(v0, v1, v2, width, height);
 
     RGBColor finalColor(0);
-    // ELITE_OLD Elite::RGBColor finalColor{};
 
     for (auto r = static_cast<uint32_t>(boundingBox.minPoint.y); r < static_cast<uint32_t>(boundingBox.maxPoint.y); ++r)
     {
@@ -156,7 +152,6 @@ bool Mesh::AssembleTriangle(const uint32_t idx, SDL_Surface* backBuffer, uint32_
             
             auto triResult = TriangleResult::Failed;
             if (IsPointInTriangle(v0, v1, v2, glm::vec2(c, r), triResult))
-            // ELITE_OLD if (IsPointInTriangle(v0, v1, v2, Elite::FPoint2(static_cast<float>(c), static_cast<float>(r)), triResult))
             {
                 const auto depth = triResult.interpolatedDepth;
 
@@ -170,10 +165,9 @@ bool Mesh::AssembleTriangle(const uint32_t idx, SDL_Surface* backBuffer, uint32_
                         finalColor = PixelShading(vInterpolated);
                         break;
                     case Depth:
-                        finalColor = {Elite::Remap(depth, 0.985f, 1.f), Elite::Remap(depth, 0.985f, 1.f), Elite::Remap(depth, 0.985f, 1.f)};
+                        finalColor = RGBColor(bme::Remap(depth, 0.985f, 1.f));
                         break;
                     }
-
                     depthBuffer[c + (r * width)] = depth;
 
                     backBufferPixels[c + (r * width)] = SDL_MapRGB(backBuffer->format,
@@ -188,14 +182,13 @@ bool Mesh::AssembleTriangle(const uint32_t idx, SDL_Surface* backBuffer, uint32_
 }
 
 bool Mesh::IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const glm::vec2& pixelPoint, TriangleResult& triResult) const noexcept
-// ELITE_OLD bool Mesh::IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const Elite::FPoint2& pixelPoint, TriangleResult& triResult) const noexcept
 {
     //Is point in triangle
     const auto edgeA = glm::vec2(v1.pos) - glm::vec2(v0.pos);
     auto pointToSide = pixelPoint - glm::vec2(v0.pos);
 
     const auto signedAreaTriV2 = bme::Cross2D(pointToSide, edgeA);
-    // ELITE_OLD const auto signedAreaTriV2 = Cross(pointToSide, edgeA);
+    
     if (signedAreaTriV2 < 0)
     {
         triResult = TriangleResult::Failed;
@@ -205,7 +198,7 @@ bool Mesh::IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, con
     const auto edgeB = glm::vec2(v2.pos) - glm::vec2(v1.pos);
     pointToSide = pixelPoint - glm::vec2(v1.pos);
     const auto signedAreaTriV0 = bme::Cross2D(pointToSide, edgeB);
-    // ELITE_OLD const auto signedAreaTriV0 = Cross(pointToSide, edgeB);
+    
     if (signedAreaTriV0 < 0)
     {
         triResult = TriangleResult::Failed;
@@ -215,7 +208,7 @@ bool Mesh::IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, con
     const auto edgeC = glm::vec2(v0.pos) - glm::vec2(v2.pos);
     pointToSide = pixelPoint - glm::vec2(v2.pos);
     const auto signedAreaTriV1 = bme::Cross2D(pointToSide, edgeC);
-    // ELITE_OLD const auto signedAreaTriV1 = Cross(pointToSide, edgeC);
+    
     if (signedAreaTriV1 < 0)
     {
         triResult = TriangleResult::Failed;
@@ -224,7 +217,7 @@ bool Mesh::IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, con
 
     //Weight Calculations
     const auto signedAreaTriFull = bme::Cross2D(glm::vec2(v1.pos - v2.pos), glm::vec2(v0.pos - v1.pos));
-    // ELITE_OLD const auto signedAreaTriFull = Cross(Elite::FVector2(v1.pos.xy - v2.pos.xy), Elite::FVector2(v0.pos.xy - v1.pos.xy));
+    
     if (signedAreaTriFull < 0)
     {
         triResult = TriangleResult::Failed;
@@ -243,19 +236,18 @@ bool Mesh::IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, con
 }
 
 RGBColor Mesh::PixelShading(const VertexOutput& v) const noexcept
-// ELITE_OLD Elite::RGBColor Mesh::PixelShading(const VertexOutput& v) const noexcept
 {
     RGBColor finalColor = {0.f, 0.f, 0.f};
-    // ELITE_OLD Elite::RGBColor finalColor = {0.f, 0.f, 0.f};
+    
     const glm::vec3 lightDirection = {0.577f, -0.577f, 0.577f};
-    // ELITE_OLD const Elite::FVector3 lightDirection = {0.577f, -0.577f, 0.577f};
+    
     const auto lightIntensity = 7.f;
     const RGBColor lightColor = {1.f, 1.f, 1.f};
-    // ELITE_OLD const Elite::RGBColor lightColor = {1.f, 1.f, 1.f};
+    
     const auto mappedNormal = MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->GetMappedNormal(v);
 
     const auto lambertCosine = glm::dot(-mappedNormal, lightDirection);
-    // ELITE_OLD const auto lambertCosine = Dot(-mappedNormal, lightDirection);
+    
 
     if (lambertCosine < 0)
     {
@@ -263,18 +255,17 @@ RGBColor Mesh::PixelShading(const VertexOutput& v) const noexcept
     }
 
     finalColor += (lightColor * lightIntensity / glm::pi<float>()) * MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->Shade(v, lightDirection, -v.viewDirection, mappedNormal) * lambertCosine;
-    // ELITE_OLD finalColor += (lightColor * lightIntensity / static_cast<float>(E_PI)) * MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->Shade(v, lightDirection, -v.viewDirection, mappedNormal) * lambertCosine;
+    
     MaxToOne(finalColor);
-    // ELITE_OLD finalColor.MaxToOne();
+    
     return finalColor;
 }
 
 BoundingBox Mesh::MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const uint32_t maxScreenWidth, const uint32_t maxScreenHeight) const noexcept
 {
     glm::vec2 boundingBoxMin = {static_cast<float>(maxScreenWidth - 1), static_cast<float>(maxScreenHeight - 1)};
-    // ELITE_OLD Elite::FVector2 boundingBoxMin = {static_cast<float>(maxScreenWidth - 1), static_cast<float>(maxScreenHeight - 1)};
+    
     glm::vec2 boundingBoxMax = {0, 0};
-    // ELITE_OLD Elite::FVector2 boundingBoxMax = {0, 0};
 
     for (auto& v : {v0, v1, v2})
     {

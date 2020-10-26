@@ -29,30 +29,21 @@ class Camera;
 class SceneGraph final : public Singleton<SceneGraph>
 {
 public:
-    explicit SceneGraph(Token) : m_CurrentScene(0), m_RenderType(Color), m_RenderSystem(D3D), m_ShowTransparency(true), m_AreObjectsRotating(true), m_ShouldUpdateRenderSystem(false){}
+    explicit SceneGraph(Token) : m_pTimer(nullptr), m_CurrentScene(0), m_RenderType(Color), m_RenderSystem(Software), m_ShowTransparency(true), m_AreObjectsRotating(true), m_ShouldUpdateRenderSystem(false){}
     ~SceneGraph();
 
     DEL_ROF(SceneGraph)
 
     //External Item Manipulation
     void AddObjectToGraph(Mesh* pObject, int sceneIdx);
-    void AddScene(int sceneIdx);
+    void AddScene(uint32_t sceneIdx);
     static void SetCamera(const glm::vec3& origin, uint32_t windowWidth = 640, uint32_t windowHeight = 480, float fovD = 45);
-    // ELITE_OLD static void SetCamera(const Elite::FPoint3& origin, uint32_t windowWidth = 640, uint32_t windowHeight = 480, float fovD = 45);
     static void ChangeCameraResolution(uint32_t width, uint32_t height);
 
     //Workers
     void Update(float dT);
     void RenderDebugUI() noexcept;
     void SetTimer(Timer* pTimer) noexcept { m_pTimer = pTimer; };
-    
-    void IncreaseScene();
-    void DecreaseScene();
-    void ToggleRenderType();
-    void ToggleRenderSystem();
-    void ToggleTransparency();
-    void ToggleObjectRotation();
-
     void ConfirmRenderSystemUpdate() noexcept { m_ShouldUpdateRenderSystem = false; }
 
     //Getters

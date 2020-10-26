@@ -1,8 +1,6 @@
 #ifndef RENDERER_HPP
 #define	RENDERER_HPP
 
-#include <cstdint>
-
 // Project includes
 #include "Scene/SceneGraph.hpp"
 

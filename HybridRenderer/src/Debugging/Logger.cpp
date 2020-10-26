@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Debugging/Logger.hpp"
 
-void Logger::OutputLog()
+void Logger::OutputLog() noexcept
 {
     m_LogList.erase(std::remove_if(m_LogList.begin(), m_LogList.end(), [](const LogEntry& entry) { return entry.markedForClear; }), m_LogList.end());
 

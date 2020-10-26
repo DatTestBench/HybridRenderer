@@ -47,11 +47,7 @@ public:
     DEL_ROF(MaterialFlat)
 
     //Workers
-    RGBColor Shade(const VertexOutput&, const glm::vec3&, const glm::vec3&, const glm::vec3&) const override
-    // ELITE_OLD Elite::RGBColor Shade(const VertexOutput&, const Elite::FVector3&, const Elite::FVector3&, const Elite::FVector3&) const override
-    {
-        return {0.f, 0.f, 0.f};
-    }
+    RGBColor Shade(const VertexOutput&, const glm::vec3&, const glm::vec3&, const glm::vec3&) const override { return RGBColor(0); }
 
     //Setters
     /*D3D*/
@@ -62,16 +58,12 @@ public:
     }
 
     void SetMatrices(const glm::mat4& projectionMat, const glm::mat4& inverseViewMat /*This is the ONB*/, const glm::mat4& worldMat) override
-    // ELITE_OLD void SetMatrices(const Elite::FMatrix4& projectionMat, const Elite::FMatrix4& inverseViewMat /*This is the ONB*/, const Elite::FMatrix4& worldMat) override
     {
         auto worldViewProjection = projectionMat * glm::inverse(inverseViewMat) * worldMat;
-        // ELITE_OLD auto worldViewProjection = projectionMat * Inverse(inverseViewMat) * worldMat;
         auto worldMatrix = worldMat;
 
         m_pMatWorldViewProjVariable->SetMatrix(&worldViewProjection[0][0]);
-        // ELITE_OLD m_pMatWorldViewProjVariable->SetMatrix(&worldViewProjection(0, 0));
         m_pMatWorldVariable->SetMatrix(&worldMatrix[0][0]);
-        // ELITE_OLD m_pMatWorldVariable->SetMatrix(&worldMatrix(0, 0));
     }
 
     void SetScalars() override

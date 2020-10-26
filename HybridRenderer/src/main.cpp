@@ -25,19 +25,6 @@ void ShutDown(SDL_Window* pWindow)
 	SDL_Quit();
 }
 
-void PrintToolTip()
-{
-	std::cout << "Movement: Unreal-like viewport controls\n\n";
-	std::cout << "Button controls:\n";
-	std::cout << "\tI: Show help screen\n";
-	std::cout << "\tR: Toggle between software and D3D rendering\n";
-	std::cout << "\tF: Toggle between filter state (order: point, linear, anisotropic)\n";
-	std::cout << "\tT: Toggle transparency on/off (only available in D3D)\n";
-	std::cout << "\tM: Toggle rendertype between color/depth-buffer (only available in software)\n";
-	std::cout << "\t1/2: Increase/decrease scene respectively (" << SceneGraph::GetInstance()->AmountOfScenes() << " scene(s) currently loaded)\n";
-	std::cout << "\tY: Toggle object rotation on/off\n";
-}
-
 void ShowSettingsWindow() noexcept
 {
 
@@ -55,8 +42,8 @@ int main(int argc, char* argv[])
 	// OpenGL versions
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-	const uint32_t width = 1280;
-	const uint32_t height = 720;
+	const uint32_t width = 1920;
+	const uint32_t height = 1080;
 	auto* pWindow = SDL_CreateWindow(
 		"Hybrid Renderer",
 		SDL_WINDOWPOS_CENTERED,
@@ -72,8 +59,6 @@ int main(int argc, char* argv[])
 	auto pTimer = new Timer;
 	const auto pRenderer = new Renderer(pWindow);
 	SceneGraph::GetInstance()->SetTimer(pTimer);
-	
-	PrintToolTip();
 	
 	//Start loop
 	pTimer->Start();
@@ -93,25 +78,6 @@ int main(int argc, char* argv[])
 				isLooping = false;
 				break;
 			case SDL_KEYUP:
-				if (e.key.keysym.scancode == SDL_SCANCODE_I)
-					PrintToolTip();
-				if (e.key.keysym.scancode == SDL_SCANCODE_2)
-					SceneGraph::GetInstance()->IncreaseScene();
-				if (e.key.keysym.scancode == SDL_SCANCODE_1)
-					SceneGraph::GetInstance()->DecreaseScene();
-				if (e.key.keysym.scancode == SDL_SCANCODE_F)
-					MaterialManager::GetInstance()->ChangeFilterType();
-				if (e.key.keysym.scancode == SDL_SCANCODE_T)
-					SceneGraph::GetInstance()->ToggleTransparency();
-				if (e.key.keysym.scancode == SDL_SCANCODE_R)
-				{
-					SceneGraph::GetInstance()->ToggleRenderSystem();
-					pRenderer->SetImGuiRenderSystem();
-				}
-				if (e.key.keysym.scancode == SDL_SCANCODE_M)
-					SceneGraph::GetInstance()->ToggleRenderType();
-				if (e.key.keysym.scancode == SDL_SCANCODE_Y)
-					SceneGraph::GetInstance()->ToggleObjectRotation();
 				break;
 			default:
 				break;
@@ -126,12 +92,6 @@ int main(int argc, char* argv[])
 
 		//--------- Timer ---------
 		pTimer->Update();
-		printTimer += pTimer->GetElapsed();
-		if (printTimer >= 1.f)
-		{
-			printTimer = 0.f;
-			std::cout << "FPS: " << pTimer->GetFPS() << std::endl;
-		}
 
 	}
 	pTimer->Stop();
@@ -139,7 +99,9 @@ int main(int argc, char* argv[])
 	//Shutdown "framework"
 	SceneGraph::GetInstance()->Destroy();
 	MaterialManager::GetInstance()->Destroy();
+	Logger::GetInstance()->Destroy();
 	SafeDelete(pRenderer);
+	SafeDelete(pTimer);
 	ImGui::DestroyContext();
 	ShutDown(pWindow);
 	return 0;

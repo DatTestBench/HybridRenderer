@@ -8,15 +8,12 @@ struct BoundingBox
 {
     BoundingBox() = default;
     explicit BoundingBox(const glm::vec2& min, const glm::vec2& max)
-    // ELITE_OLD explicit BoundingBox(const Elite::FVector2& min, const Elite::FVector2& max)
         : minPoint(min)
         , maxPoint(max)
     {}
     
     glm::vec2 minPoint;
-    // ELITE_OLD Elite::FVector2 minPoint;
     glm::vec2 maxPoint;
-    // ELITE_OLD Elite::FVector2 maxPoint;
 };
 
 struct TriangleResult
