@@ -88,7 +88,9 @@ public:
 	{
 		return std::string("[" + m_LevelTags.at(level) + "] " + header + " > ");
 	}
-	void OutputLog();
+
+	
+	void OutputLog() noexcept;
 
 private:
 
