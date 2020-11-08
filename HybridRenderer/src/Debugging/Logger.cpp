@@ -7,7 +7,8 @@
 
 void Logger::OutputLog() noexcept
 {
-    m_LogList.erase(std::remove_if(m_LogList.begin(), m_LogList.end(), [](const LogEntry& entry) { return entry.markedForClear; }), m_LogList.end());
+    m_LogList.remove_if([](const LogEntry& entry) { return entry.markedForClear; });
+    //m_LogList.erase(std::remove_if(m_LogList.begin(), m_LogList.end(), [](const LogEntry& entry) { return entry.markedForClear; }), m_LogList.end());
 
     if (ImGui::Begin("Log"))
     {
@@ -41,7 +42,7 @@ void Logger::OutputLog() noexcept
 
                 if (m_ShowHeaders)
                 {
-                    ImGui::TextColored(m_ImGuiColors.at(magic_enum::enum_integer(log.level)), ("[" + m_LevelTags.at(magic_enum::enum_integer(log.level)) + "] " + log.header + " > " + log.message.str()).c_str(), 0);
+                    ImGui::TextColored(m_ImGuiColors.at(magic_enum::enum_integer(log.level)), ("[" + std::string(magic_enum::enum_name(log.level)) + "] " + log.header + " > " + log.message.str()).c_str(), 0);
                 }
                 else
                 {

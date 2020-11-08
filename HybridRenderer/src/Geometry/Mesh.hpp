@@ -40,8 +40,7 @@ public:
     /*General*/
     void Update(float dT, float rotationSpeed) noexcept;
     /*Software*/
-    bool Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width,
-                   uint32_t height);
+    bool Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height);
     /*D3D*/
     void Render(ID3D11DeviceContext* pDeviceContext, Camera* pCamera) const noexcept;
 

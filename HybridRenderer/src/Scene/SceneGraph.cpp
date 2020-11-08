@@ -60,9 +60,9 @@ void SceneGraph::Update(const float dT)
         rotationSpeed = 0.f;
     }
 
-    for (auto& i : GetCurrentSceneObjects())
+    for (auto pMesh : GetCurrentSceneObjects())
     {
-        i->Update(dT, rotationSpeed);
+        pMesh->Update(dT, rotationSpeed);
     }
 }
 
@@ -80,10 +80,12 @@ void SceneGraph::RenderDebugUI() noexcept
         {
             for (auto [system, name] : magic_enum::enum_entries<RenderSystem>())
             {
-                if (ImGui::Selectable(C_STR_FROM_VIEW(name)))
+                if (ImGui::Selectable(C_STR_FROM_VIEW(name)) && system != m_RenderSystem)
                 {
                     m_RenderSystem = system;
                     m_ShouldUpdateRenderSystem = true;
+
+                    LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Rendersystem changed to " << magic_enum::enum_name(m_RenderSystem))
                 }
             }
             ImGui::EndCombo();
@@ -111,7 +113,7 @@ void SceneGraph::RenderDebugUI() noexcept
             {
                 for (auto [type, name] : magic_enum::enum_entries<RenderType>())
                 {
-                    if (ImGui::Selectable(std::string(name).c_str()))
+                    if (ImGui::Selectable(std::string(name).c_str()) && type != m_RenderType)
                     {
                         m_RenderType = type;
                         LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Rendertype changed to " << magic_enum::enum_name(m_RenderType))
@@ -126,7 +128,7 @@ void SceneGraph::RenderDebugUI() noexcept
         {
             for (auto[id, objects] : m_pScenes)
             {
-                if (ImGui::Selectable(TO_C_STR(id)))
+                if (ImGui::Selectable(TO_C_STR(id)) && m_CurrentScene != id)
                 {
                     m_CurrentScene = id;
                     LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Scene\n " << m_CurrentScene + 1 << " / " << m_pScenes.size())
@@ -143,7 +145,6 @@ void SceneGraph::RenderDebugUI() noexcept
             else
                 LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Object rotation turned Off")
         }
-        
     }
     ImGui::End();
 }

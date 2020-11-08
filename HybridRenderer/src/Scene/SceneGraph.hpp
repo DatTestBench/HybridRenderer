@@ -59,7 +59,7 @@ public:
 private:
     //Data Members
     std::vector<Mesh*> m_Objects;
-    std::map<int, std::vector<Mesh*>> m_pScenes;
+    std::map<uint32_t, std::vector<Mesh*>> m_pScenes;
     static Camera* m_pCamera;
     Timer* m_pTimer;
     //Scene Settings

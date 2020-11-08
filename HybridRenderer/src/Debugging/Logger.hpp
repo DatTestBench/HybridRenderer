@@ -1,14 +1,18 @@
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
-#include "Helpers/Singleton.hpp"
 
-#include <array>
+// General Includes
 #include <list>
+#include <array>
 #include <sstream>
 
+// Project Includes
+#include "Helpers/Singleton.hpp"
 #include "Helpers/magic_enum.hpp"
 
+// todo(matthieu) clean all of this up
 
+#define DEBUG_OVERRIDE 1
 
 #define LOG_CONSOLE_ONLY 1
 #define LOG_LOGGER_ONLY 2
@@ -16,8 +20,7 @@
 
 #define LOG_OUTPUT LOG_LOGGER_ONLY
 
-
-#if 1
+#if _DEBUG || DEBUG_OVERRIDE
 	#if LOG_OUTPUT == LOG_CONSOLE_ONLY
 		#define LOG(level, header, input) std::cout << Logger::GetInstance()->RawOutput(LogLevel::level, header) << input << "\n";
 	#elif LOG_OUTPUT == LOG_LOGGER_ONLY
@@ -29,8 +32,6 @@
 #else
 	#define LOG(level, header, input) {}
 #endif
-
-
 
 enum class LogLevel : int16_t
 {
@@ -44,7 +45,7 @@ enum class LogLevel : int16_t
 	LEVEL_WARNING = Warning,
 	Error = 4,
 	LEVEL_ERROR = Error,
-	Full = 5,
+	Full = 5, // Only used to for displaying in the log window, should not be passed to logentries
 	LEVEL_FULL = Full // Only used to for displaying in the log window, should not be passed to logentries
 };
 
@@ -58,9 +59,7 @@ struct LogEntry
 		: header(log)
 		, level(lvl)
 		, markedForClear(false)
-
-	{
-	}
+	{}
 };
 
 class Logger final : public Singleton<Logger>
@@ -68,7 +67,7 @@ class Logger final : public Singleton<Logger>
 public:
 
 	explicit Logger(Token) {}
-
+	
 	/**
 	 * Log Function 
 	 * @param Level (Template) LogLevel
@@ -100,7 +99,7 @@ public:
 	 * */
 	std::string RawOutput(const LogLevel level, const std::string& header) const 
 	{
-		return std::string("[" + m_LevelTags.at(magic_enum::enum_integer(level)) + "] " + header + " > ");
+		return std::string("[" + std::string(magic_enum::enum_name(level)) + "] " + header + " > ");
 	}
 
 	
@@ -121,16 +120,6 @@ private:
 		ImVec4{ 1.f, 1.f, 0.f, 1.f }, // WARNING
 		ImVec4{ 1.f, 0.f, 0.f, 1.f },	// ERROR
 		ImVec4{ 1.f, 1.f, 1.f, 1.f }	// DEFAULT
-	};
-
-	const std::array<std::string, 6> m_LevelTags
-	{
-		"SUCCESS",
-		"DEBUG",
-		"INFO",
-		"WARNING",
-		"ERROR",
-		"FULL" // Only used to for displaying in the log window, should not be passed to logentries
 	};
 };
 
