@@ -1,19 +1,23 @@
 #include "pch.h"
 #include "Debugging/Logger.hpp"
 
+
+#include "Helpers/GeneralHelpers.hpp"
+#include "Helpers/magic_enum.hpp"
+
 void Logger::OutputLog() noexcept
 {
     m_LogList.erase(std::remove_if(m_LogList.begin(), m_LogList.end(), [](const LogEntry& entry) { return entry.markedForClear; }), m_LogList.end());
 
     if (ImGui::Begin("Log"))
     {
-        if (ImGui::BeginCombo("LevelSelection", m_LevelTags.at(m_CurrentLevel).c_str())) // Reference to implementation https://github.com/ocornut/imgui/issues/1658
+        if (ImGui::BeginCombo("LevelSelection", ENUM_TO_C_STR(m_CurrentLevel))) // Reference to implementation https://github.com/ocornut/imgui/issues/1658
         {
-            for (size_t i = 0; i < m_LevelTags.size(); i++)
+            for (auto [level, name] : magic_enum::enum_entries<LogLevel>())
             {
-                if (ImGui::Selectable(m_LevelTags.at(i).c_str(), m_CurrentLevel == i))
+                if (ImGui::Selectable(C_STR_FROM_VIEW(name)))
                 {
-                    m_CurrentLevel = static_cast<LogLevel>(i);
+                    m_CurrentLevel = level;
                 }
             }
             ImGui::EndCombo();
@@ -26,7 +30,7 @@ void Logger::OutputLog() noexcept
         uint32_t logLine = 1;
         for (auto& log : m_LogList)
         {
-            if (log.level == m_CurrentLevel || m_CurrentLevel == LEVEL_FULL)
+            if (log.level == m_CurrentLevel || m_CurrentLevel == LogLevel::LEVEL_FULL)
             {
                 if (ImGui::SmallButton((std::to_string(logLine++) + "::").c_str()))
                 {
@@ -37,12 +41,12 @@ void Logger::OutputLog() noexcept
 
                 if (m_ShowHeaders)
                 {
-                    ImGui::TextColored(m_ImGuiColors.at(log.level), ("[" + m_LevelTags.at(log.level) + "] " + log.header + " > " + log.message.str()).c_str(), 0);
+                    ImGui::TextColored(m_ImGuiColors.at(magic_enum::enum_integer(log.level)), ("[" + m_LevelTags.at(magic_enum::enum_integer(log.level)) + "] " + log.header + " > " + log.message.str()).c_str(), 0);
                 }
                 else
                 {
                     ImGui::LogText("");
-                    ImGui::TextColored(m_ImGuiColors.at(log.level), log.message.str().c_str(), 0);
+                    ImGui::TextColored(m_ImGuiColors.at(magic_enum::enum_integer(log.level)), log.message.str().c_str(), 0);
                 }
             }
         }

@@ -1,6 +1,6 @@
 ﻿#ifndef GENERAL_HELPERS_HPP
 #define GENERAL_HELPERS_HPP
-#include "EMath.h"
+#include "magic_enum.hpp"
 
 
 // Structs
@@ -36,4 +36,14 @@ struct TriangleResult
     static const TriangleResult Failed;
 };
 const inline TriangleResult TriangleResult::Failed(0.f, 0.f, 0.f, 0.f, 0.f);
+
+#define ENUM_TO_C_STR(value) std::string(magic_enum::enum_name(value)).c_str()
+#define TO_C_STR(value) std::to_string(value).c_str()
+#define C_STR_FROM_VIEW(value) std::string(value).c_str()
+
+// Wrappers for enums
+
+
+
+
 #endif // !GENERAL_HELPERS_HPP

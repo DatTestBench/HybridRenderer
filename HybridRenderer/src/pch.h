@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <vector>
 #define NOMINMAX  //for directx
 
 // SDL Headers
@@ -13,7 +14,7 @@
 #include <SDL_surface.h>
 
 #include <SDL_opengl.h>
-#include <GL\GLU.h>
+#include <GL/GLU.h>
 #include <SDL_image.h>
 
 // ImGui

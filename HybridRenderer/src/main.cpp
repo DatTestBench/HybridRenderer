@@ -62,7 +62,6 @@ int main(int argc, char* argv[])
 	
 	//Start loop
 	pTimer->Start();
-	auto printTimer = 0.f;
 	auto isLooping = true;
 
 	while (isLooping)

@@ -76,11 +76,11 @@ void SceneGraph::RenderDebugUI() noexcept
         ImGui::Text((std::string("Framerate: ") + std::to_string(m_pTimer->GetFPS())).c_str());
         
         // Render System
-        if (ImGui::BeginCombo("Render System", std::string(magic_enum::enum_name(m_RenderSystem)).c_str()))
+        if (ImGui::BeginCombo("Render System",  ENUM_TO_C_STR(m_RenderSystem)))
         {
             for (auto [system, name] : magic_enum::enum_entries<RenderSystem>())
             {
-                if (ImGui::Selectable(std::string(name).c_str()))
+                if (ImGui::Selectable(C_STR_FROM_VIEW(name)))
                 {
                     m_RenderSystem = system;
                     m_ShouldUpdateRenderSystem = true;
@@ -107,7 +107,7 @@ void SceneGraph::RenderDebugUI() noexcept
 
         if (m_RenderSystem == Software)
         {
-            if (ImGui::BeginCombo("Render Type", std::string(magic_enum::enum_name(m_RenderType)).c_str()))
+            if (ImGui::BeginCombo("Render Type", ENUM_TO_C_STR(m_RenderType)))
             {
                 for (auto [type, name] : magic_enum::enum_entries<RenderType>())
                 {
@@ -122,11 +122,11 @@ void SceneGraph::RenderDebugUI() noexcept
         }
         
         // Scene Selection
-        if (ImGui::BeginCombo("SceneSelection", std::to_string(m_CurrentScene).c_str()))
+        if (ImGui::BeginCombo("SceneSelection", TO_C_STR(m_CurrentScene)))
         {
             for (auto[id, objects] : m_pScenes)
             {
-                if (ImGui::Selectable(std::to_string(id).c_str()))
+                if (ImGui::Selectable(TO_C_STR(id)))
                 {
                     m_CurrentScene = id;
                     LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Scene\n " << m_CurrentScene + 1 << " / " << m_pScenes.size())

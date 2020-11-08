@@ -6,36 +6,46 @@
 #include <list>
 #include <sstream>
 
-#define LOG_CONSOLE_ONLY 0
-#define LOG_LOGGER_ONLY 1
-#define LOG_BOTH 0
+#include "Helpers/magic_enum.hpp"
 
 
-#if LOG_CONSOLE_ONLY
-	#define LOG(level, header, input) std::cout << Logger::GetInstance()->RawOutput(level, header) << input << "\n";
-#elif LOG_LOGGER_ONLY
-	#define LOG(level, header, input) Logger::GetInstance()->Log<level>(header) << input;
-#elif LOG_BOTH
-	#define LOG(level, header, input) std::cout << Logger::GetInstance()->RawOutput(level, header) << input << "\n"; \
-									Logger::GetInstance()->Log<level>(header) << input;
+
+#define LOG_CONSOLE_ONLY 1
+#define LOG_LOGGER_ONLY 2
+#define LOG_BOTH 3
+
+#define LOG_OUTPUT LOG_LOGGER_ONLY
+
+
+#if 1
+	#if LOG_OUTPUT == LOG_CONSOLE_ONLY
+		#define LOG(level, header, input) std::cout << Logger::GetInstance()->RawOutput(LogLevel::level, header) << input << "\n";
+	#elif LOG_OUTPUT == LOG_LOGGER_ONLY
+		#define LOG(level, header, input) Logger::GetInstance()->Log<LogLevel::level>(header) << input;
+	#elif LOG_OUTPUT == LOG_BOTH
+		#define LOG(level, header, input) std::cout << Logger::GetInstance()->RawOutput(LogLevel::level, header) << input << "\n"; \
+									Logger::GetInstance()->Log<LogLevel::level>(header) << input;
+	#endif
+#else
+	#define LOG(level, header, input) {}
 #endif
 
 
 
-enum LogLevel : uint16_t
+enum class LogLevel : int16_t
 {
-	LEVEL_SUCCESS,
-	LEVEL_DEBUG,
-	LEVEL_INFO,
-	LEVEL_WARNING,
-	LEVEL_ERROR,
-	LEVEL_FULL // Only used to for displaying in the log window, should not be passed to logentries
-};
-
-enum LogArgument : uint16_t
-{
-	LOG_IMGUI,
-	LOG_CONSOLE
+	Success = 0,
+	LEVEL_SUCCESS = Success,
+	Debug = 1,
+	LEVEL_DEBUG = Debug,
+	Info = 2,
+	LEVEL_INFO = Info,
+	Warning = 3,
+	LEVEL_WARNING = Warning,
+	Error = 4,
+	LEVEL_ERROR = Error,
+	Full = 5,
+	LEVEL_FULL = Full // Only used to for displaying in the log window, should not be passed to logentries
 };
 
 struct LogEntry
@@ -67,7 +77,7 @@ public:
 	template<LogLevel Level>
 	static Logger& Log(const std::string& header = "")
 	{
-		static_assert(Level != LEVEL_FULL, "LEVEL_FULL is not a valid LogLevel");
+		static_assert(Level != LogLevel::LEVEL_FULL, "LEVEL_FULL is not a valid LogLevel");
 
 		GetInstance()->m_LogList.emplace_back(LogEntry(header, Level));
 		return *GetInstance();
@@ -84,9 +94,13 @@ public:
 		return *GetInstance();
 	}
 
-	std::string  RawOutput(const LogLevel level, const std::string& header) const 
+	/**
+	 * Returns string with loglevel + header structure
+	 * @returns string with loglevel + header
+	 * */
+	std::string RawOutput(const LogLevel level, const std::string& header) const 
 	{
-		return std::string("[" + m_LevelTags.at(level) + "] " + header + " > ");
+		return std::string("[" + m_LevelTags.at(magic_enum::enum_integer(level)) + "] " + header + " > ");
 	}
 
 	
@@ -97,7 +111,7 @@ private:
 
 	std::list<LogEntry> m_LogList;
 	bool m_ShowHeaders = true;
-	LogLevel m_CurrentLevel = LEVEL_FULL;
+	LogLevel m_CurrentLevel = LogLevel::LEVEL_FULL;
 
 	const std::array<ImVec4, 6> m_ImGuiColors
 	{
