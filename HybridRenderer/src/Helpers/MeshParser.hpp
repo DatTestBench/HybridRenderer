@@ -131,10 +131,12 @@ private:
                                                  }
                                                  return false;
                                              });
+        // duplicate vertex? just add the index
         if (findResult != m_VertexBuffer.end())
         {
             m_IndexBuffer.emplace_back(findIndex);
         }
+        // new vertex
         else
         {
             m_VertexBuffer.emplace_back(pos, uv, normal);

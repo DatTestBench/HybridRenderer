@@ -106,8 +106,7 @@ public:
 	void OutputLog() noexcept;
 
 private:
-
-
+	
 	std::list<LogEntry> m_LogList;
 	bool m_ShowHeaders = true;
 	LogLevel m_CurrentLevel = LogLevel::LEVEL_FULL;
