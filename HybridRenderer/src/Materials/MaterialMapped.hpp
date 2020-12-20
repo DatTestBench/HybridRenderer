@@ -6,7 +6,8 @@
 #include "Materials/Material.hpp"
 #include "Materials/BRDF.hpp"
 #include "Materials/Texture.hpp"
-
+#include "Rendering/Camera.hpp"
+#include <glm/gtc/matrix_access.hpp>
 class MaterialMapped final : public Material
 {
 public:
@@ -104,16 +105,56 @@ public:
 
     //Workers
     /*Software*/
-    RGBColor Shade(const VertexOutput& v, const glm::vec3& lightDirection, const glm::vec3& viewDirection, const glm::vec3& normal) const override
+    RGBColor Shade(const VertexOutput& v, const glm::vec3&, const glm::vec3&, const glm::vec3&) const override
     {
-        auto tempColor = RGBColor(0);
+        const auto pCam = SceneGraph::GetCamera();
+        const auto viewDirection = glm::normalize(v.worldPos - glm::vec3(glm::column(pCam->GetInverseViewMatrix(), 3)));
+    
+        RGBColor finalColor = {0.f, 0.f, 0.f};
+        // variables
+        const glm::vec3 lightDirection = {0.577f, -0.577f, -0.577f};
 
-        if (m_pDiffuseMap != nullptr)
-            tempColor += m_pDiffuseMap->Sample(v.uv);
+        const auto lightIntensity = 7.f;
+        const RGBColor lightColor = {1.f, 1.f, 1.f};
+
+        // normal
+        const auto mappedNormal = GetMappedNormal(v);
+
+        // diffuse
+        RGBColor diffuseColor{0.f};
+        if (m_pDiffuseMap!= nullptr)
+        {
+            float diffuseStrength = pow((glm::dot(-mappedNormal, lightDirection) * 0.5f) + 0.5f, 2.f);
+            //auto diffuseStrength = glm::dot(-mappedNormal, lightDirection);
+            diffuseStrength = std::max(0.f, diffuseStrength);
+            diffuseStrength /= glm::pi<float>();
+            diffuseStrength *= lightIntensity;
+            diffuseColor = lightColor * m_pDiffuseMap->Sample(v.uv) * diffuseStrength;
+        }
+
+        // phong
+        RGBColor specularColor{0.f};
         if (m_pSpecularMap != nullptr && m_pGlossinessMap != nullptr)
-            tempColor += BRDF::Phong(m_pSpecularMap->Sample(v.uv), m_pGlossinessMap->SampleF(v.uv) * m_Shininess,
-                                     lightDirection, viewDirection, normal);
-        return tempColor;
+        {
+            specularColor = BRDF::Phong(m_pSpecularMap->Sample(v.uv), m_pGlossinessMap->SampleF(v.uv) * m_Shininess, lightDirection, viewDirection, mappedNormal);
+        }
+
+        finalColor = diffuseColor + specularColor;
+
+        MaxToOne(finalColor);
+
+        return finalColor;
+
+
+        
+        //auto tempColor = RGBColor(0);
+        //
+        //if (m_pDiffuseMap != nullptr)
+        //    tempColor += m_pDiffuseMap->Sample(v.uv);
+        //if (m_pSpecularMap != nullptr && m_pGlossinessMap != nullptr)
+        //    tempColor += BRDF::Phong(m_pSpecularMap->Sample(v.uv), m_pGlossinessMap->SampleF(v.uv) * m_Shininess,
+        //                             lightDirection, viewDirection, normal);
+        //return tempColor;
     }
 
     //Setters
@@ -147,7 +188,7 @@ public:
     }
 
     //Getters
-    /*D3D*/
+    /*Software*/
     glm::vec3 GetMappedNormal(const VertexOutput& v) const noexcept override
     {
         if (m_pNormalMap == nullptr)
@@ -157,10 +198,10 @@ public:
         const auto tangentSpaceAxis = glm::mat3(v.tangent, binormal, v.normal);
         auto mappedNormal = m_pNormalMap->SampleV(v.uv);
         mappedNormal /= 255.f;
-        mappedNormal = 2.f * mappedNormal - glm::vec3(1.f, 1.f, 1.f);
+        mappedNormal = 2.f * mappedNormal - 1.f;
         mappedNormal = tangentSpaceAxis * mappedNormal;
 
-        return mappedNormal;
+        return glm::normalize(mappedNormal);
     }
 
 private:

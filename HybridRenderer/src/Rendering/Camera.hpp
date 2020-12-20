@@ -2,7 +2,6 @@
 #define CAMERA_HPP
 
 //Project includes
-#include "Helpers/EMath.h"
 #include "Scene/SceneGraph.hpp"
 
 class Mesh;
@@ -25,9 +24,12 @@ public:
 
     //Getters
 
-    [[nodiscard]] auto GetInverseViewMatrix() const noexcept -> glm::mat4 { return m_LookAt; }
-    [[nodiscard]] auto GetViewMatrix() const noexcept -> glm::mat4 { return glm::inverse(m_LookAt); }
+    [[nodiscard]] auto GetInverseViewMatrix() const noexcept -> glm::mat4 { return m_CameraMatrix; }
+    [[nodiscard]] auto GetViewMatrix() const noexcept -> glm::mat4 { return glm::inverse(m_CameraMatrix); }
     [[nodiscard]] auto GetProjectionMatrix() const noexcept -> glm::mat4 { return m_ProjectionMatrix; }
+    [[nodiscard]] constexpr auto GetPosition() const noexcept -> glm::vec3 { return m_Origin; }
+    [[nodiscard]] constexpr auto GetPitch() const noexcept -> float { return m_Pitch; }
+    [[nodiscard]] constexpr auto GetYaw() const noexcept -> float { return m_Yaw; }
 
 private:
     glm::vec3 m_Origin;
@@ -48,9 +50,13 @@ private:
     float m_FarPlane;
 
     //Matrices
-    glm::mat4 m_LookAt;
+    glm::mat4 m_CameraMatrix;
     glm::mat4 m_ProjectionMatrix;
     glm::mat4 m_ViewMatrix;
+
+    glm::vec3 m_Forward;
+    glm::vec3 m_Right;
+    glm::vec3 m_Up;
 
     void UpdateLookAtMatrix(float dT);
 };

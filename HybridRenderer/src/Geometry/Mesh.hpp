@@ -12,7 +12,6 @@
 #include <string>
 
 //Project includes
-#include "Helpers/EMath.h"
 #include "Helpers/GeneralHelpers.hpp"
 #include "Materials/Texture.hpp"
 #include "Helpers/Vertex.hpp"
@@ -28,7 +27,7 @@ enum class PrimitiveTopology
 
 class Camera;
 
-class Mesh
+class Mesh final
 {
 public:
     Mesh(ID3D11Device* pDevice, const std::string& modelPath, Material* pMaterial, const glm::vec3& origin = {0, 0, 0});
@@ -70,14 +69,13 @@ private:
     /*Software*/
     std::vector<uint32_t> m_IndexBuffer;
     std::vector<VertexInput> m_VertexBuffer;
+    std::vector<VertexInput> m_HardwareVertexBuffer;
     std::vector<VertexOutput> m_SSVertices;
 
-    bool AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height);
-    bool IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const glm::vec2& pixelPoint, TriangleResult& triResult) const noexcept;
-    RGBColor PixelShading(const VertexOutput& v) const noexcept;
-    BoundingBox MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, uint32_t maxScreenWidth = INT_MAX,
+    [[nodiscard]] bool AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height);
+    [[nodiscard]] RGBColor PixelShading(const VertexOutput& v) const noexcept;
+    [[nodiscard]] BoundingBox2D MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, uint32_t maxScreenWidth = INT_MAX,
                                                                  uint32_t maxScreenHeight = INT_MAX) const noexcept;
-
 
     /*D3D*/
     ID3D11InputLayout* m_pVertexLayout;

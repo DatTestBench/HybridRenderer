@@ -1,7 +1,12 @@
 #include "pch.h"
 #include "Rendering/Camera.hpp"
+
+#include <algorithm>
+
 #include "Geometry/Mesh.hpp"
 #include <SDL.h>
+#include <glm/gtc/matrix_access.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 Camera::Camera(const glm::vec3& origin, const uint32_t windowWidth, const uint32_t windowHeight, const float fovD, const float nearPlane, const float farPlane)
     : m_Origin{origin},
@@ -13,12 +18,15 @@ Camera::Camera(const glm::vec3& origin, const uint32_t windowWidth, const uint32
       m_Width{windowWidth},
       m_Height{windowHeight},
       m_AspectRatio{static_cast<float>(windowWidth) / windowHeight},
-      m_FOV{tanf(fovD * static_cast<float>(E_TO_RADIANS) / 2.f)},
+      m_FOV{tanf(glm::radians(fovD) / 2.f)},
       m_NearPlane{nearPlane},
       m_FarPlane{farPlane},
-      m_LookAt{},
+      m_CameraMatrix{},
       m_ProjectionMatrix{},
-      m_ViewMatrix{}
+      m_ViewMatrix{},
+      m_Forward(0),
+      m_Right(0),
+      m_Up(0)
 {
     switch (m_RenderSystem)
     {
@@ -26,7 +34,7 @@ Camera::Camera(const glm::vec3& origin, const uint32_t windowWidth, const uint32
         m_ProjectionMatrix = {
             {1.f / (m_AspectRatio * m_FOV), 0, 0, 0},
             {0, 1.f / m_FOV, 0, 0},
-            {0, 0, m_FarPlane / (m_NearPlane - m_FarPlane), - 1},
+            {0, 0, m_FarPlane / (m_NearPlane - m_FarPlane), -1},
             {0, 0, (m_FarPlane * m_NearPlane) / (m_NearPlane - m_FarPlane), 0}
         };
         break;
@@ -52,10 +60,8 @@ void Camera::Update(const float dT)
 
 void Camera::UpdateLookAtMatrix(float dT)
 {
-
-
     glm::ivec2 dMove;
-        
+
     const auto buttonMask = SDL_GetRelativeMouseState(&dMove.x, &dMove.y);
     const auto* keyState = SDL_GetKeyboardState(nullptr);
 
@@ -79,7 +85,7 @@ void Camera::UpdateLookAtMatrix(float dT)
         //Horizontal rotation + Horizontal movement (Z) in local space
         if (buttonMask == SDL_BUTTON_LMASK)
         {
-            m_Yaw -= dMove.x * static_cast<float>(E_TO_RADIANS) * m_RotationSensitivity;
+            m_Yaw -= glm::radians(dMove.x * m_RotationSensitivity);
             movement.z += m_MovementSensitivity * dMove.y;
         }
         //Horizontal movement (X) in local space + Horizontal movement (Z) in local space
@@ -91,8 +97,8 @@ void Camera::UpdateLookAtMatrix(float dT)
         //Free cam rotation
         if (buttonMask == SDL_BUTTON_RMASK)
         {
-            m_Yaw -= dMove.x * static_cast<float>(E_TO_RADIANS) * m_RotationSensitivity;
-            m_Pitch -= dMove.y * static_cast<float>(E_TO_RADIANS) * m_RotationSensitivity;
+            m_Yaw -= glm::radians(dMove.x * m_RotationSensitivity);
+            m_Pitch -= glm::radians(dMove.y * m_RotationSensitivity);
         }
 
         //Keyboard movement (Y) in world space
@@ -132,10 +138,10 @@ void Camera::UpdateLookAtMatrix(float dT)
     switch (m_RenderSystem)
     {
     case Software:
-        m_Origin += (glm::vec3(m_LookAt * glm::vec4(movement, 0)) + worldMovement) * dT;
+        m_Origin += (glm::vec3(m_CameraMatrix * glm::vec4(movement, 0)) + worldMovement) * dT;
         break;
     case D3D:
-        m_Origin += (glm::vec3(glm::transpose(m_LookAt) * glm::vec4(movement, 0)) + worldMovement) * dT;
+        m_Origin += (glm::vec3(glm::transpose(m_CameraMatrix) * glm::vec4(movement, 0)) + worldMovement) * dT;
         break;
     default:
         break;
@@ -169,29 +175,48 @@ void Camera::UpdateLookAtMatrix(float dT)
     const auto cosYaw = cos(m_Yaw);
     const auto sinYaw = sin(m_Yaw);
 
-    glm::vec4 forward{};
-    glm::vec4 worldUp{0, 1, 0, 0};
-    glm::vec4 right{};
-    glm::vec4 up{};
+    glm::vec3 forward{};
+    glm::vec3 worldUp{0, 1, 0};
+    glm::vec3 right{};
+    glm::vec3 up{};
 
+    // todo this whole things doesn't really make sense. The cross products should be inverted for D3D, using glm::lookatRH/lookatLH should work, but doesn't. For now it works ish, but this is not how it should be
     switch (m_RenderSystem)
     {
     case Software:
+        {
+            m_Forward = {sinYaw * cosPitch, -sinPitch, cosPitch * cosYaw};
+            m_Right = glm::normalize(glm::cross(worldUp, m_Forward));
+            m_Up = glm::normalize(glm::cross(m_Forward, m_Right));
 
-        forward = {sinYaw * cosPitch, -sinPitch, cosPitch * cosYaw, 0};
-        right = {glm::normalize(glm::cross(glm::vec3(worldUp), glm::vec3(forward))), 0.f};
-        up = {glm::normalize(glm::cross(glm::vec3(forward), glm::vec3(right))), 0.f};
+            //m_ViewMatrix = glm::lookAtRH(m_Origin, m_Origin + forward, m_Up);
+            //m_ViewMatrix = bme::LookAtRH(m_Origin, forward, worldUp);
 
-        m_LookAt = glm::mat4(right, up, forward, glm::vec4(m_Origin.x, m_Origin.y, m_Origin.z, 1.f));
 
-        break;
+            m_CameraMatrix = glm::mat4({m_Right, 0},
+                                       {m_Up, 0},
+                                       {m_Forward, 0},
+                                       glm::vec4(m_Origin.x, m_Origin.y, m_Origin.z, 1.f));
+
+
+            break;
+        }
     case D3D:
+        {
+            m_Forward = {-sinYaw * cosPitch, sinPitch, cosPitch * cosYaw};
+            m_Right = glm::normalize(glm::cross(worldUp, m_Forward));
+            m_Up = glm::normalize(glm::cross(m_Forward, m_Right));
 
-        forward = {-sinYaw * cosPitch, sinPitch, cosPitch * cosYaw, 0};
-        right = {glm::normalize(glm::cross(glm::vec3(worldUp), glm::vec3(forward))), 0.f};
-        up = {glm::normalize(glm::cross(glm::vec3(forward), glm::vec3(right))), 0.f};
-        m_LookAt = glm::mat4(right, up, forward, glm::vec4(m_Origin.x, m_Origin.y, -m_Origin.z, 1.f));
-        break;
+            //m_ViewMatrix = glm::lookAtLH(m_Origin, m_Origin + m_Forward, m_Up);
+            //m_ViewMatrix = bme::LookAtLH(m_Origin, m_Forward, worldUp);
+            
+            m_CameraMatrix = glm::mat4({m_Right, 0},
+                                       {m_Up, 0},
+                                       {m_Forward, 0},
+                                       glm::vec4(m_Origin.x, m_Origin.y, -m_Origin.z, 1.f));
+
+            break;
+        }
     default:
         break;
     }
@@ -215,23 +240,24 @@ void Camera::MakeScreenSpace(Mesh* pMesh) const
 {
     std::vector<VertexOutput> sSVertices;
 
-    const auto viewProjWorldMatrix = m_ProjectionMatrix * glm::inverse(m_LookAt) * pMesh->GetWorld();
+    const auto viewProjWorldMatrix = m_ProjectionMatrix * glm::inverse(m_CameraMatrix) * pMesh->GetWorld();
 
-    for (auto& v : pMesh->GetVertices())
+    for (const auto& v : pMesh->GetVertices())
     {
+        const auto worldMat3 = glm::mat3(pMesh->GetWorld());
         VertexOutput sSV{};
         sSV.uv = v.uv;
-        sSV.worldPos = v.pos;
+        sSV.worldPos = glm::vec4(v.pos, 1.f) * pMesh->GetWorld();
 
         sSV.pos = viewProjWorldMatrix * glm::vec4(v.pos, 1);
-        sSV.normal = glm::vec3(pMesh->GetWorld() * glm::vec4(v.normal, 0));
-        sSV.tangent = glm::vec3(pMesh->GetWorld() * glm::vec4(v.tangent, 0));
+        sSV.normal = v.normal * worldMat3;
+        sSV.tangent = v.tangent * worldMat3;
 
         sSV.pos.x /= sSV.pos.w;
         sSV.pos.y /= sSV.pos.w;
         sSV.pos.z /= sSV.pos.w;
 
-        sSV.viewDirection = glm::normalize((glm::mat3(pMesh->GetWorld()) * v.pos) - m_Origin);
+        sSV.viewDirection = glm::normalize(worldMat3 * v.pos - m_Origin);
         if (sSV.pos.x < -1 || sSV.pos.x > 1 || sSV.pos.y < -1 || sSV.pos.y > 1 || sSV.pos.z < 0 || sSV.pos.z > 1)
         {
             sSV.culled = true;
@@ -269,18 +295,18 @@ void Camera::ToggleRenderSystem(const RenderSystem& renderSystem)
     {
     case Software:
         m_ProjectionMatrix = {
-            { 1.f / (m_AspectRatio * m_FOV), 0, 0, 0 },
-            { 0, 1.f / m_FOV, 0, 0 },
-            { 0, 0, m_FarPlane / (m_NearPlane - m_FarPlane), - 1 },
-            { 0, 0, (m_FarPlane * m_NearPlane) / (m_NearPlane - m_FarPlane), 0 }
+            {1.f / (m_AspectRatio * m_FOV), 0, 0, 0},
+            {0, 1.f / m_FOV, 0, 0},
+            {0, 0, m_FarPlane / (m_NearPlane - m_FarPlane), - 1},
+            {0, 0, (m_FarPlane * m_NearPlane) / (m_NearPlane - m_FarPlane), 0}
         };
         break;
     case D3D:
         m_ProjectionMatrix = {
-            { 1.f / (m_AspectRatio * m_FOV), 0, 0, 0 },
-            { 0, 1.f / m_FOV, 0, 0},
-            { 0, 0, m_FarPlane / (m_FarPlane - m_NearPlane), 1 },
-            { 0, 0, -(m_NearPlane * m_FarPlane) / (m_FarPlane - m_NearPlane), 0 }
+            {1.f / (m_AspectRatio * m_FOV), 0, 0, 0},
+            {0, 1.f / m_FOV, 0, 0},
+            {0, 0, m_FarPlane / (m_FarPlane - m_NearPlane), 1},
+            {0, 0, -(m_NearPlane * m_FarPlane) / (m_FarPlane - m_NearPlane), 0}
         };
         break;
     default:

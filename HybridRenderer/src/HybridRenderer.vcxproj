@@ -87,6 +87,7 @@
   <ItemGroup>
     <ClCompile Include="Debugging\Logger.cpp" />
     <ClCompile Include="Geometry\Mesh.cpp" />
+    <ClCompile Include="Helpers\GeometryHelpers.cpp" />
     <ClCompile Include="Helpers\Timer.cpp" />
     <ClCompile Include="ImGui\imgui.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -122,7 +123,9 @@
   <ItemGroup>
     <ClInclude Include="Debugging\Logger.hpp" />
     <ClInclude Include="Geometry\Mesh.hpp" />
+    <ClInclude Include="Helpers\Concepts.hpp" />
     <ClInclude Include="Helpers\GeneralHelpers.hpp" />
+    <ClInclude Include="Helpers\GeometryHelpers.hpp" />
     <ClInclude Include="Helpers\magic_enum.hpp" />
     <ClInclude Include="Helpers\MathHelpers.hpp" />
     <ClInclude Include="Helpers\MeshParser.hpp" />

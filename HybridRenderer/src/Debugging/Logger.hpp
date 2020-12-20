@@ -102,7 +102,9 @@ public:
 		return std::string("[" + std::string(magic_enum::enum_name(level)) + "] " + header + " > ");
 	}
 
-	
+	/**
+	 * ImGui code to output the logger window
+	 * */
 	void OutputLog() noexcept;
 
 private:

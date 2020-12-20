@@ -7,7 +7,6 @@
 
 //Project includes
 #include "Helpers/RGBColor.hpp"
-#include "Helpers/EMath.h"
 
 class Texture
 {

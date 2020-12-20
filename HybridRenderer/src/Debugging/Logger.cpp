@@ -34,21 +34,14 @@ void Logger::OutputLog() noexcept
             if (log.level == m_CurrentLevel || m_CurrentLevel == LogLevel::LEVEL_FULL)
             {
                 if (ImGui::SmallButton((std::to_string(logLine++) + "::").c_str()))
-                {
                     log.markedForClear = true;
-                }
 
                 ImGui::SameLine();
 
                 if (m_ShowHeaders)
-                {
                     ImGui::TextColored(m_ImGuiColors.at(magic_enum::enum_integer(log.level)), ("[" + std::string(magic_enum::enum_name(log.level)) + "] " + log.header + " > " + log.message.str()).c_str(), 0);
-                }
                 else
-                {
-                    ImGui::LogText("");
                     ImGui::TextColored(m_ImGuiColors.at(magic_enum::enum_integer(log.level)), log.message.str().c_str(), 0);
-                }
             }
         }
     }

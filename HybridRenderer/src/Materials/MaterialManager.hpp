@@ -28,7 +28,7 @@ public:
     void AddMaterial(Material* pMaterial);
 
     //Getters
-    [[nodiscard]] constexpr auto GetMaterials() noexcept -> std::unordered_map<uint32_t, Material*>* { return &m_Materials; }
+    [[nodiscard]] constexpr auto GetMaterials() noexcept -> std::unordered_map<uint32_t, Material*>& { return m_Materials; }
     [[nodiscard]] auto GetMaterial(const int key) const noexcept -> Material* { return m_Materials.at(key); }
     [[nodiscard]] auto GetMaterial(Mesh* pObject) const noexcept -> Material* { return GetMaterial(pObject->GetMaterialId()); }
     [[nodiscard]] auto AmountOfMaterials() const noexcept -> uint32_t { return static_cast<uint32_t>(m_Materials.size()); }

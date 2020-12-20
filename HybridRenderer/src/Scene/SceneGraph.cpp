@@ -4,6 +4,7 @@
 #include "Scene/SceneGraph.hpp"
 
 #include "Debugging/Logger.hpp"
+#include "Geometry/Mesh.hpp"
 #include "Helpers/magic_enum.hpp"
 #include "Helpers/Timer.hpp"
 #include "Rendering/Camera.hpp"
@@ -53,7 +54,7 @@ void SceneGraph::Update(const float dT)
     float rotationSpeed;
     if (m_AreObjectsRotating)
     {
-        rotationSpeed = 0.5f;
+        rotationSpeed = 0.1f;
     }
     else
     {
@@ -90,8 +91,6 @@ void SceneGraph::RenderDebugUI() noexcept
             }
             ImGui::EndCombo();
         }
-        
-        // Filter Modes
 
         // Transparency
         if (m_RenderSystem == D3D)
@@ -105,18 +104,50 @@ void SceneGraph::RenderDebugUI() noexcept
             }
         }
         
-        // Render Type
+        // Software Render Type
 
         if (m_RenderSystem == Software)
         {
-            if (ImGui::BeginCombo("Render Type", ENUM_TO_C_STR(m_RenderType)))
+            if (ImGui::BeginCombo("Render Type", ENUM_TO_C_STR(m_SoftwareRenderType)))
             {
-                for (auto [type, name] : magic_enum::enum_entries<RenderType>())
+                for (auto [type, name] : magic_enum::enum_entries<SoftwareRenderType>())
                 {
-                    if (ImGui::Selectable(std::string(name).c_str()) && type != m_RenderType)
+                    if (ImGui::Selectable(C_STR_FROM_VIEW(name)) && type != m_SoftwareRenderType)
                     {
-                        m_RenderType = type;
-                        LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Rendertype changed to " << magic_enum::enum_name(m_RenderType))
+                        m_SoftwareRenderType = type;
+                        LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Rendertype changed to " << magic_enum::enum_name(m_SoftwareRenderType))
+                    }
+                }
+                ImGui::EndCombo();
+            }
+        }
+
+        // Hardware Render Type and Filtering
+        if (m_RenderSystem == D3D)
+        {
+            if (ImGui::BeginCombo("Render Type", ENUM_TO_C_STR(m_HardwareRenderType)))
+            {
+                for (auto [type, name] : magic_enum::enum_entries<HardwareRenderType>())
+                {
+                    if (ImGui::Selectable(C_STR_FROM_VIEW(name)) && type != m_HardwareRenderType)
+                    {
+                        m_HardwareRenderType = type;
+                        m_ShouldUpdateHardwareTypes = true;
+                        LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Rendertype changed to " << magic_enum::enum_name(m_HardwareRenderType))
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            if (ImGui::BeginCombo("Filter Type", ENUM_TO_C_STR(m_HardwareFilterType)))
+            {
+                for (const auto [type, name] : magic_enum::enum_entries<HardwareFilterType>())
+                {
+                    if (ImGui::Selectable(C_STR_FROM_VIEW(name)) && type != m_HardwareFilterType)
+                    {
+                        m_HardwareFilterType = type;
+                        m_ShouldUpdateHardwareTypes = true;
+                        LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Filtertype changed to " << magic_enum::enum_name(m_HardwareFilterType))
                     }
                 }
                 ImGui::EndCombo();
@@ -145,6 +176,21 @@ void SceneGraph::RenderDebugUI() noexcept
             else
                 LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Object rotation turned Off")
         }
+
+        // Camera Variables
+        const auto pCam = GetCamera();
+        
+        ImGui::Text("Position");
+        const auto pos = pCam->GetPosition();
+        ImGui::BulletText("x: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(pos.x));
+        ImGui::BulletText("y: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(pos.y));
+        ImGui::BulletText("z: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(pos.z));
+
+        ImGui::Text("Rotation");
+        const auto pitch = pCam->GetPitch();
+        const auto yaw = pCam->GetYaw();
+        ImGui::BulletText("pitch: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(pitch));
+        ImGui::BulletText("yaw: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(yaw));
     }
     ImGui::End();
 }

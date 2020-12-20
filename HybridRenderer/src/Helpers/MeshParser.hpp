@@ -16,8 +16,6 @@
 
 
 #include "MathHelpers.hpp"
-#include "Helpers/EMath.h"
-//class Mesh;
 
 class MeshParser
 {
@@ -173,7 +171,7 @@ private:
             std::smatch match;
             regex_search(string, match, m_RegexMap.at("v"));
             // Adding - to the z, because DirectX is left handed!
-            m_VertexPosBuffer.push_back(glm::vec3(stof(match[1]), stof(match[2]), -stof(match[3])));
+            m_VertexPosBuffer.push_back(glm::vec3(stof(match[1]), stof(match[2]), stof(match[3])));
         };
         m_ParseFunctions["vt"] = [this](const std::string& string)
         {
@@ -190,7 +188,7 @@ private:
             std::smatch match;
             regex_search(string, match, m_RegexMap.at("vn"));
 
-            m_NormalBuffer.push_back(glm::vec3(stof(match[1]), stof(match[2]), stof(match[3])));
+            m_NormalBuffer.push_back(glm::normalize(glm::vec3(stof(match[1]), stof(match[2]), stof(match[3]))));
         };
         m_ParseFunctions["vp"] = [this](const std::string&)
         {

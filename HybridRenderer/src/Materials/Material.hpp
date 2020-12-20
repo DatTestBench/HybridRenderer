@@ -11,6 +11,8 @@
 //Project includes
 #include "Debugging/Logger.hpp"
 #include "Helpers/Vertex.hpp"
+#include "Scene/SceneGraph.hpp"
+//#include "Scene/SceneGraph.hpp"
 
 
 class Material
@@ -40,13 +42,29 @@ public:
         {
             LOG(LEVEL_ERROR, "Material::Material()", "Variable gSampleType not found")
             // LOG_OLD std::wcout << L"m_pSamplerVariable not valid\n";
-        } 
+        }
+
+        m_pRenderTypeVariable = m_pEffect->GetVariableByName("gRenderType")->AsScalar();
+        if (!m_pRenderTypeVariable->IsValid())
+        {
+            LOG(LEVEL_ERROR, "Material::Material()", "Variable gRenderType not found");
+        }
+        
     }
 
     virtual ~Material()
     {
+        //Releasing scalar variables
+        if (m_pSamplerVariable)
+            m_pSamplerVariable->Release();
+        if (m_pRenderTypeVariable)
+            m_pRenderTypeVariable->Release();
+        
+        //Releasing matrix variables
         if (m_pMatWorldViewProjVariable)
             m_pMatWorldViewProjVariable->Release();
+        
+        //Releasing technique and shader
         if (m_pTechnique)
             m_pTechnique->Release();
         if (m_pEffect)
@@ -65,6 +83,12 @@ public:
     virtual void SetMatrices(const glm::mat4& projectionMat, const glm::mat4& inverseViewMat /*This is the OBN*/, const glm::mat4& worldMat) = 0;
     virtual void SetScalars() = 0;
 
+    void UpdateTypeSettings(const HardwareRenderType& renderType, const HardwareFilterType& samplerType) const noexcept
+    {
+        m_pSamplerVariable->SetInt(magic_enum::enum_integer(samplerType));
+        m_pRenderTypeVariable->SetInt(magic_enum::enum_integer(renderType));
+    }
+
     //Getters
     /*General*/
     [[nodiscard]] constexpr auto GetId() const noexcept -> uint32_t { return m_Id; }
@@ -79,7 +103,7 @@ public:
     [[nodiscard]] constexpr auto GetTechnique() const noexcept -> ID3DX11EffectTechnique* { return m_pTechnique; }
     [[nodiscard]] constexpr auto GetWorldViewProjMat() const noexcept -> ID3DX11EffectMatrixVariable* { return m_pMatWorldViewProjVariable; }
     [[nodiscard]] constexpr auto GetSamplerType() const noexcept -> ID3DX11EffectScalarVariable* { return m_pSamplerVariable; }
-
+    [[nodiscard]] constexpr auto GetRenderType() const noexcept -> ID3DX11EffectScalarVariable* { return m_pRenderTypeVariable; }
 protected:
     /*General*/
     uint32_t m_Id;
@@ -89,6 +113,7 @@ protected:
     ID3DX11EffectTechnique* m_pTechnique;
     ID3DX11EffectMatrixVariable* m_pMatWorldViewProjVariable;
     ID3DX11EffectScalarVariable* m_pSamplerVariable;
+    ID3DX11EffectScalarVariable* m_pRenderTypeVariable;
 
     //Handles "SHADER" compilation
     static ID3DX11Effect* LoadEffect(ID3D11Device* pDevice, const std::wstring& effectFile)

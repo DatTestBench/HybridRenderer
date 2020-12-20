@@ -1,13 +1,14 @@
 float4x4 gWorldViewProj : WorldViewProjection;
 Texture2D gDiffuseMap : DiffuseMap;
 
-float3 gLightDirection = {0.577f, -0.577f, -0.577f};
+float3 gLightDirection = {0.577f, -0.577f, 0.577f};
 float4x4 gWorldMatrix : WORLD;
 
 float PI = 3.1415f;
 float gLightIntensity = 7.0f;
 float3 gLightColor = {1.f, 1.f, 1.f};
 int gSampleType = 0; // Default sample type is PointSampling
+int gRenderType = 0;
 
 SamplerState samPoint
 {
@@ -89,7 +90,7 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
 	float4 Position : SV_POSITION;
-	float4 WorldPostion : POSITION;
+	float4 WorldPosition : COLOR;
 	float2 UV : TEXCOORD;
 	float3 Normal : NORMAL;
 	float3 Tangent : TANGENT;
@@ -125,7 +126,7 @@ VS_OUTPUT VS(VS_INPUT input)
 {
 	VS_OUTPUT output = (VS_OUTPUT)0;
 	output.Position = mul(float4(input.Position, 1.f), gWorldViewProj);
-	output.WorldPostion = mul(float4(input.Position, 1.f), gWorldMatrix);
+	output.WorldPosition = mul(float4(input.Position, 1.f), gWorldMatrix);
 	output.UV = input.UV;
 	output.Normal = mul(normalize(input.Normal), (float3x3)gWorldMatrix);
 	output.Tangent = mul(normalize(input.Tangent), (float3x3)gWorldMatrix);

@@ -8,6 +8,7 @@
 #pragma warning(default : 4201)
 
 #include "Helpers/GeneralHelpers.hpp"
+#include "Helpers/GeometryHelpers.hpp"
 #include "Materials/Material.hpp"
 #include "Materials/MaterialManager.hpp"
 #include "Scene/SceneGraph.hpp"
@@ -83,9 +84,7 @@ bool Mesh::Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float*
     for (uint32_t i = 0; i < m_IndexBuffer.size() - 2; i += increment)
     {
         if (AssembleTriangle(i, backBuffer, backBufferPixels, depthBuffer, width, height))
-        {
             meshHit = true;
-        }
     }
 
     return meshHit;
@@ -118,15 +117,15 @@ bool Mesh::AssembleTriangle(const uint32_t idx, SDL_Surface* backBuffer, uint32_
             || m_IndexBuffer[idx + 1] == m_IndexBuffer[idx + 2]
             || m_IndexBuffer[idx + 2] == m_IndexBuffer[idx])
             return false;
-        
+
         v0 = m_SSVertices[m_IndexBuffer[idx]];
         if (v0.pos.z < 0)
             return false;
-        
+
         v1 = m_SSVertices[m_IndexBuffer[idx + 1 + idx % 2]];
         if (v1.pos.z < 0)
             return false;
-        
+
         v2 = m_SSVertices[m_IndexBuffer[idx + 2 - idx % 2]];
         if (v2.pos.z < 0)
             return false;
@@ -149,31 +148,71 @@ bool Mesh::AssembleTriangle(const uint32_t idx, SDL_Surface* backBuffer, uint32_
     {
         for (auto c = static_cast<uint32_t>(boundingBox.minPoint.x); c < static_cast<uint32_t>(boundingBox.maxPoint.x); ++c)
         {
-            
-            auto triResult = TriangleResult::Failed;
-            if (IsPointInTriangle(v0, v1, v2, glm::vec2(c, r), triResult))
+            TriangleResult triResult;
+            bgh::CalculateWeightArea(glm::vec2(c, r), v0, v1, v2, triResult);
+
+            if (bgh::IsPointInTriangle(triResult))
             {
-                const auto depth = triResult.interpolatedDepth;
+                const auto totalArea = bme::Cross2D(glm::vec2(v1.pos - v2.pos), glm::vec2(v0.pos - v1.pos));
+                if (totalArea < 0)
+                    return false;
+                
+                triResult /= abs(totalArea);
 
-                if (depth < depthBuffer[c + (r * width)])
+                // Just here for readability
+                const auto [w0, w1, w2] = triResult;
+
+                // Depth test
+                const auto depth =
+                    ((1.f / v0.pos.z) * w0) +
+                    ((1.f / v1.pos.z) * w1) +
+                    ((1.f / v2.pos.z) * w2);
+
+                const auto inverseDepth = 1.f / depth;
+
+                if (inverseDepth > 1.f || inverseDepth < 0.f)
+                    return false;
+
+                if (inverseDepth < depthBuffer[c + (r * width)])
                 {
-                    auto vInterpolated = Interpolate(v0, v1, v2, triResult);
+                    depthBuffer[c + (r * width)] = inverseDepth;
 
-                    switch (SceneGraph::GetInstance()->GetRenderType())
+                    const auto v0DepthInv = 1.f / v0.pos.w;
+                    const auto v1DepthInv = 1.f / v1.pos.w;
+                    const auto v2DepthInv = 1.f / v2.pos.w;
+
+
+                    // interpolated w component for attribute interpolation
+                    const auto interpolatedDepth = 1.f /
+                    (v0DepthInv * w0 +
+                    v1DepthInv * w1 +
+                    v2DepthInv * w2);
+
+                    const auto interpolatedAttributes = Interpolate(v0, v1, v2, triResult, interpolatedDepth);
+
+
+                    switch (SceneGraph::GetInstance()->GetSoftwareRenderType())
                     {
-                    case Color:
-                        finalColor = PixelShading(vInterpolated);
+                    case SoftwareRenderType::Color:
+                        finalColor = PixelShading(interpolatedAttributes);
                         break;
-                    case Depth:
-                        finalColor = RGBColor(bme::Remap(depth, 0.985f, 1.f));
+                    case SoftwareRenderType::Depth:
+                        finalColor = RGBColor(bme::Remap(inverseDepth, 0.985f, 1.f));
+                        break;
+                    case SoftwareRenderType::Normal:
+                        finalColor = glm::abs(interpolatedAttributes.normal);
+                        break;
+                    case SoftwareRenderType::NormalMapped:
+                        finalColor = glm::abs(MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->GetMappedNormal(interpolatedAttributes));
+                        break;
+                    default:
                         break;
                     }
-                    depthBuffer[c + (r * width)] = depth;
 
                     backBufferPixels[c + (r * width)] = SDL_MapRGB(backBuffer->format,
-                                                                 static_cast<uint8_t>(finalColor.r * 255),
-                                                                 static_cast<uint8_t>(finalColor.g * 255),
-                                                                 static_cast<uint8_t>(finalColor.b * 255));
+                                                                   static_cast<uint8_t>(finalColor.r * 255),
+                                                                   static_cast<uint8_t>(finalColor.g * 255),
+                                                                   static_cast<uint8_t>(finalColor.b * 255));
                 }
             }
         }
@@ -181,108 +220,57 @@ bool Mesh::AssembleTriangle(const uint32_t idx, SDL_Surface* backBuffer, uint32_
     return true;
 }
 
-bool Mesh::IsPointInTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const glm::vec2& pixelPoint, TriangleResult& triResult) const noexcept
-{
-    //Is point in triangle
-    const auto edgeA = glm::vec2(v1.pos) - glm::vec2(v0.pos);
-    auto pointToSide = pixelPoint - glm::vec2(v0.pos);
-
-    const auto signedAreaTriV2 = bme::Cross2D(pointToSide, edgeA);
-    
-    if (signedAreaTriV2 < 0)
-    {
-        triResult = TriangleResult::Failed;
-        return false;
-    }
-
-    const auto edgeB = glm::vec2(v2.pos) - glm::vec2(v1.pos);
-    pointToSide = pixelPoint - glm::vec2(v1.pos);
-    const auto signedAreaTriV0 = bme::Cross2D(pointToSide, edgeB);
-    
-    if (signedAreaTriV0 < 0)
-    {
-        triResult = TriangleResult::Failed;
-        return false;
-    }
-
-    const auto edgeC = glm::vec2(v0.pos) - glm::vec2(v2.pos);
-    pointToSide = pixelPoint - glm::vec2(v2.pos);
-    const auto signedAreaTriV1 = bme::Cross2D(pointToSide, edgeC);
-    
-    if (signedAreaTriV1 < 0)
-    {
-        triResult = TriangleResult::Failed;
-        return false;
-    }
-
-    //Weight Calculations
-    const auto signedAreaTriFull = bme::Cross2D(glm::vec2(v1.pos - v2.pos), glm::vec2(v0.pos - v1.pos));
-    
-    if (signedAreaTriFull < 0)
-    {
-        triResult = TriangleResult::Failed;
-        return false;
-    }
-
-    const auto w0 = signedAreaTriV0 / signedAreaTriFull;
-    const auto w1 = signedAreaTriV1 / signedAreaTriFull;
-    const auto w2 = signedAreaTriV2 / signedAreaTriFull;
-
-    const auto interpolatedDepth = 1.f / ((1.f / v0.pos.z) * w0 + (1.f / v1.pos.z) * w1 + (1.f / v2.pos.z) * w2);
-    const auto linearInterpolatedDepth = 1.f / ((1.f / v0.pos.w) * w0 + (1.f / v1.pos.w) * w1 + (1.f / v2.pos.w) * w2);
-
-    triResult = TriangleResult(interpolatedDepth, linearInterpolatedDepth, w0, w1, w2);
-    return true;
-}
 
 RGBColor Mesh::PixelShading(const VertexOutput& v) const noexcept
 {
-    RGBColor finalColor = {0.f, 0.f, 0.f};
-    
-    const glm::vec3 lightDirection = {0.577f, -0.577f, 0.577f};
-    
-    const auto lightIntensity = 7.f;
-    const RGBColor lightColor = {1.f, 1.f, 1.f};
-    
-    const auto mappedNormal = MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->GetMappedNormal(v);
+   //RGBColor finalColor = {0.f, 0.f, 0.f};
 
-    const auto lambertCosine = glm::dot(-mappedNormal, lightDirection);
-    
+   //const glm::vec3 lightDirection = {0.577f, -0.577f, -0.577f};
 
-    if (lambertCosine < 0)
-    {
-        return finalColor;
-    }
+   //const auto lightIntensity = 7.f;
+   //const RGBColor lightColor = {1.f, 1.f, 1.f};
 
-    finalColor += (lightColor * lightIntensity / glm::pi<float>()) * MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->Shade(v, lightDirection, -v.viewDirection, mappedNormal) * lambertCosine;
-    
-    MaxToOne(finalColor);
-    
-    return finalColor;
+   //const auto mappedNormal = MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->GetMappedNormal(v);
+
+   //const auto lambertCosine = std::max(0.f, glm::dot(-mappedNormal, lightDirection));
+
+   //finalColor = (lightColor * lightIntensity / glm::pi<float>()) * MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->Shade(v, lightDirection, v.viewDirection, mappedNormal) *
+   //    lambertCosine;
+
+   //MaxToOne(finalColor);
+    const auto pMat = MaterialManager::GetInstance()->GetMaterial(m_MaterialId);
+    return pMat->Shade(v, {}, v.viewDirection, {});
 }
 
-BoundingBox Mesh::MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const uint32_t maxScreenWidth, const uint32_t maxScreenHeight) const noexcept
+BoundingBox2D Mesh::MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const uint32_t maxScreenWidth, const uint32_t maxScreenHeight) const noexcept
 {
     glm::vec2 boundingBoxMin = {static_cast<float>(maxScreenWidth - 1), static_cast<float>(maxScreenHeight - 1)};
-    
+
     glm::vec2 boundingBoxMax = {0, 0};
+    BoundingBox2D boundingBox{ {static_cast<float>(maxScreenWidth - 1), static_cast<float>(maxScreenHeight - 1)}, {0,0} };
 
     for (auto& v : {v0, v1, v2})
     {
+        boundingBox.Expand(glm::vec2(v.pos));
         boundingBoxMin.x = std::min(boundingBoxMin.x, v.pos.x);
         boundingBoxMin.y = std::min(boundingBoxMin.y, v.pos.y);
-
         boundingBoxMax.x = std::max(boundingBoxMax.x, v.pos.x);
         boundingBoxMax.y = std::max(boundingBoxMax.y, v.pos.y);
     }
+    //boundingBox.Expand(boundingBox.minPoint - 1.f);
+    //boundingBox.Expand(boundingBox.maxPoint + 1.f);
+    boundingBox.AddMargin(1);
+    
+    boundingBox.Clamp({0.f, 0.f}, { maxScreenWidth, maxScreenHeight});
 
-    boundingBoxMin.x = std::max(boundingBoxMin.x - 1, 0.f);
-    boundingBoxMin.y = std::max(boundingBoxMin.y - 1, 0.f);
+    boundingBoxMin.x = std::max(boundingBoxMin.x, 0.f);
+    boundingBoxMin.y = std::max(boundingBoxMin.y, 0.f);
 
     boundingBoxMax.x = std::min(boundingBoxMax.x + 1, static_cast<float>(maxScreenWidth - 1));
     boundingBoxMax.y = std::min(boundingBoxMax.y + 1, static_cast<float>(maxScreenHeight - 1));
 
-    return BoundingBox(boundingBoxMin, boundingBoxMax);
+    //return BoundingBox(boundingBoxMin, boundingBoxMax);
+    return boundingBox;
 }
 
 
@@ -375,8 +363,19 @@ void Mesh::MakeMesh(ID3D11Device* pDevice, const std::vector<uint32_t>& indices,
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     bd.CPUAccessFlags = 0;
     bd.MiscFlags = 0;
+
+    for (const auto& vertex : vertices)
+    {
+        VertexInput v{};
+        v.pos = {vertex.pos.x, vertex.pos.y, -vertex.pos.z};
+        v.uv = vertex.uv;
+        v.tangent = {vertex.tangent.x, vertex.tangent.y, -vertex.tangent.z};
+        v.normal = {vertex.normal.x, vertex.normal.y, -vertex.normal.z};
+        m_HardwareVertexBuffer.push_back(v);
+    }
+    
     D3D11_SUBRESOURCE_DATA initData = {nullptr};
-    initData.pSysMem = vertices.data();
+    initData.pSysMem = m_HardwareVertexBuffer.data();
     result = pDevice->CreateBuffer(&bd, &initData, &m_pVertexBuffer);
     if (FAILED(result))
         return;
@@ -395,15 +394,7 @@ void Mesh::MakeMesh(ID3D11Device* pDevice, const std::vector<uint32_t>& indices,
 
     /*Software Initialization*/
     m_IndexBuffer = indices;
-    for (const auto& vertex : vertices)
-    {
-        VertexInput v{};
-        v.pos = {vertex.pos.x, vertex.pos.y, -vertex.pos.z};
-        v.uv = vertex.uv;
-        v.tangent = {vertex.tangent.x, vertex.tangent.y, -vertex.tangent.z};
-        v.normal = {vertex.normal.x, vertex.normal.y, -vertex.normal.z};
-        m_VertexBuffer.push_back(v);
-    }
+    m_VertexBuffer = vertices;
 }
 
-#pragma endregion
+#pragma endregion Workers

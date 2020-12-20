@@ -8,6 +8,7 @@
 #include <vector>
 #define NOMINMAX  //for directx
 
+#define GLM_FORCE_SILENT_WARNINGS
 // SDL Headers
 #include <SDL.h>
 #include <SDL_syswm.h>

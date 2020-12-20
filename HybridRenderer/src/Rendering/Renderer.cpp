@@ -41,7 +41,7 @@ Renderer::Renderer(SDL_Window* pWindow)
 
 	//Objects and materials are initialized here as m_pDevice is needed for object initialization
 	MaterialManager::GetInstance()->AddMaterial(new MaterialMapped(m_pDevice, L"./Resources/Shaders/PosCol3D.fx", "./Resources/Textures/vehicle_diffuse.png", "./Resources/Textures/vehicle_normal.png", "./Resources/Textures/vehicle_gloss.png", "./Resources/Textures/vehicle_specular.png", 25.f, 1, false));
-	MaterialManager::GetInstance()->AddMaterial(new MaterialFlat(m_pDevice, L"./Resources/Shaders/FlatTransparancy.fx", "./Resources/Textures/fireFX_diffuse.png", 2, true));
+	MaterialManager::GetInstance()->AddMaterial(new MaterialFlat(m_pDevice, L"./Resources/Shaders/FlatTransparency.fx", "./Resources/Textures/fireFX_diffuse.png", 2, true));
 	m_pSceneGraph->AddScene(0);
 	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/vehicle.obj", MaterialManager::GetInstance()->GetMaterial(1), glm::vec3(0, 0, 0)), 0);
 	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/fireFX.obj", MaterialManager::GetInstance()->GetMaterial(2), glm::vec3(0, 0, 0)), 0);
@@ -70,10 +70,19 @@ void Renderer::Render() const
 		m_pSceneGraph->GetCamera()->ToggleRenderSystem(m_pSceneGraph->GetRenderSystem());
 		m_pSceneGraph->ConfirmRenderSystemUpdate();
 	}
+
+	if (m_pSceneGraph->ShouldUpdateHardwareTypes())
+	{
+		for (const auto [id, pMat] : MaterialManager::GetInstance()->GetMaterials())
+		{
+			pMat->UpdateTypeSettings(m_pSceneGraph->GetHardwareRenderType(), m_pSceneGraph->GetHardwareFilterType());
+		}
+		m_pSceneGraph->ConfirmHardwareTypesUpdate();
+	}
 	
 	switch (m_pSceneGraph->GetRenderSystem())
 	{
-	case RenderSystem::Software:
+	case Software:
 		{
 			// This is the surface we'll be rendering to, we need to lock it to write to it
 			SDL_LockSurface(m_pSoftwareBuffer);
