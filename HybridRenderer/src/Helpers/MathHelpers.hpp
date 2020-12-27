@@ -206,17 +206,17 @@ namespace bme
 namespace std
 {
 
+    template< std::size_t I, auto N, class T, auto Q>
+    constexpr auto& get(glm::vec<N, T, Q>& v) noexcept { return v[I]; }
+    
+    template< std::size_t I, auto N, class T, auto Q>
+    constexpr const auto& get(const glm::vec<N, T, Q>& v) noexcept { return v[I]; }
+    
     //template< std::size_t I, auto N, class T, auto Q>
-    //constexpr auto& get(glm::vec<N, T, Q>& v) noexcept { return v[I]; }
+    //constexpr auto&& get(glm::vec<N, T, Q>&& v) noexcept { return std::move(v[I]); }
     //
     //template< std::size_t I, auto N, class T, auto Q>
-    //constexpr const auto& get(const glm::vec<N, T, Q>& v) noexcept { return v[I]; }
-    
-    template< std::size_t I, auto N, class T, auto Q>
-    constexpr auto&& get(glm::vec<N, T, Q>&& v) noexcept { return std::move(v[I]); }
-    
-    template< std::size_t I, auto N, class T, auto Q>
-    constexpr const auto&& get(const glm::vec<N, T, Q>&& v) noexcept { return std::move(v[I]); }
+    //constexpr const auto&& get(const glm::vec<N, T, Q>&& v) noexcept { return std::move(v[I]); }
     
     template <auto N, class T, auto Q>
     struct tuple_size<glm::vec<N, T, Q>> : std::integral_constant<std::size_t, N> { };

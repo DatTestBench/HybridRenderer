@@ -145,7 +145,7 @@ VS_OUTPUT VS(VS_INPUT input)
 float3 Phong(float3 kS, float phongExponent, float3 lightDirection, float3 viewDirection, float3 normal)
 {	
 	float3 finalColor = {0.f, 0.f, 0.f};
-	float3 reflection = reflect(lightDirection, normal);
+	float3 reflection = normalize(reflect(lightDirection, normal));
 	float cosineAngle = dot(reflection, viewDirection);
 
 	if (cosineAngle > 0.f)
@@ -159,10 +159,10 @@ float3 Phong(float3 kS, float phongExponent, float3 lightDirection, float3 viewD
 float3 MapNormal(VS_OUTPUT vertex)
 {
 	float3 binormal = cross(vertex.Normal, vertex.Tangent);
-	float3x3 tangentSpaceAxis = float3x3(vertex.Tangent, binormal, vertex.Normal);
+	float3x3 tangentSpaceAxis = transpose(float3x3(vertex.Tangent, binormal, vertex.Normal));
 	float3 mappedNormal = SampleCustom(gNormalMap, vertex.UV);
 	mappedNormal = 2.0f * mappedNormal - 1.f;
-	mappedNormal = mul(mappedNormal, tangentSpaceAxis);
+	mappedNormal = mul(tangentSpaceAxis, mappedNormal);
 	return normalize(mappedNormal);
 }
 
@@ -183,7 +183,7 @@ float4 PS(VS_OUTPUT input) : SV_TARGET
 	    // phong
 	    float3 specularValue = SampleCustom(gSpecularMap, input.UV);
 	    float phongExponent = mul(SampleCustom(gGlossinessMap, input.UV).r, gShininess);
-	    float3 specularColor = Phong(specularValue, phongExponent, -gLightDirection, viewDirection, MapNormal(input));
+	    float3 specularColor = Phong(specularValue, phongExponent, gLightDirection, -viewDirection, MapNormal(input));
 	    
 	    return float4(diffuseColor + specularColor, 1.f);
 	}
@@ -192,7 +192,7 @@ float4 PS(VS_OUTPUT input) : SV_TARGET
 	if (gRenderType == 1)
 	{
 	    float3 viewDirection = normalize(input.WorldPosition.xyz - gInverseViewMatrix[3].xyz);
-	    return float4(Phong(SampleCustom(gSpecularMap, input.UV), mul(SampleCustom(gGlossinessMap, input.UV).r, gShininess), -gLightDirection, viewDirection, MapNormal(input)), 1.f);
+	    return float4(Phong(SampleCustom(gSpecularMap, input.UV), mul(SampleCustom(gGlossinessMap, input.UV).r, gShininess), gLightDirection, -viewDirection, MapNormal(input)), 1.f);
 	}
 	
 	// Normal (surface)

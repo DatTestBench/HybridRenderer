@@ -12,7 +12,7 @@ void Logger::OutputLog() noexcept
 
     if (ImGui::Begin("Log"))
     {
-        if (ImGui::BeginCombo("LevelSelection", ENUM_TO_C_STR(m_CurrentLevel))) // Reference to implementation https://github.com/ocornut/imgui/issues/1658
+        if (ImGui::BeginCombo("LevelSelection", ENUM_TO_C_STR(m_CurrentLevel)))
         {
             for (auto [level, name] : magic_enum::enum_entries<LogLevel>())
             {

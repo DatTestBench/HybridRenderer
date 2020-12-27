@@ -23,13 +23,16 @@ public:
     void ToggleRenderSystem(const RenderSystem& renderSystem);
 
     //Getters
-
-    [[nodiscard]] auto GetInverseViewMatrix() const noexcept -> glm::mat4 { return m_CameraMatrix; }
-    [[nodiscard]] auto GetViewMatrix() const noexcept -> glm::mat4 { return glm::inverse(m_CameraMatrix); }
+    [[nodiscard]] auto GetInverseViewMatrix() const noexcept -> glm::mat4 { return glm::inverse(m_CameraMatrix); }
+    [[nodiscard]] auto GetViewMatrix() const noexcept -> glm::mat4 { return m_CameraMatrix; }
     [[nodiscard]] auto GetProjectionMatrix() const noexcept -> glm::mat4 { return m_ProjectionMatrix; }
     [[nodiscard]] constexpr auto GetPosition() const noexcept -> glm::vec3 { return m_Origin; }
     [[nodiscard]] constexpr auto GetPitch() const noexcept -> float { return m_Pitch; }
     [[nodiscard]] constexpr auto GetYaw() const noexcept -> float { return m_Yaw; }
+
+    [[nodiscard]] constexpr auto GetForward() const noexcept -> glm::vec3 { return m_Forward; }
+    [[nodiscard]] constexpr auto GetRight() const noexcept -> glm::vec3 { return m_Right; }
+    [[nodiscard]] constexpr auto GetUp() const noexcept -> glm::vec3 { return m_Up; }
 
 private:
     glm::vec3 m_Origin;

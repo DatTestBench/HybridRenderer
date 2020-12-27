@@ -86,7 +86,7 @@ void SceneGraph::RenderDebugUI() noexcept
                     m_RenderSystem = system;
                     m_ShouldUpdateRenderSystem = true;
 
-                    LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Rendersystem changed to " << magic_enum::enum_name(m_RenderSystem))
+                    LOG(LEVEL_INFO, "Rendersystem changed to " << magic_enum::enum_name(m_RenderSystem))
                 }
             }
             ImGui::EndCombo();
@@ -98,9 +98,9 @@ void SceneGraph::RenderDebugUI() noexcept
             if (ImGui::Checkbox("Transparency", &m_ShowTransparency))
             {
                 if (m_ShowTransparency)
-                    LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Transparancy On")
+                    LOG(LEVEL_INFO, "Transparancy On")
                 else
-                    LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Transparancy Off")
+                    LOG(LEVEL_INFO, "Transparancy Off")
             }
         }
         
@@ -115,7 +115,7 @@ void SceneGraph::RenderDebugUI() noexcept
                     if (ImGui::Selectable(C_STR_FROM_VIEW(name)) && type != m_SoftwareRenderType)
                     {
                         m_SoftwareRenderType = type;
-                        LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Rendertype changed to " << magic_enum::enum_name(m_SoftwareRenderType))
+                        LOG(LEVEL_INFO, "Rendertype changed to " << magic_enum::enum_name(m_SoftwareRenderType))
                     }
                 }
                 ImGui::EndCombo();
@@ -133,7 +133,7 @@ void SceneGraph::RenderDebugUI() noexcept
                     {
                         m_HardwareRenderType = type;
                         m_ShouldUpdateHardwareTypes = true;
-                        LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Rendertype changed to " << magic_enum::enum_name(m_HardwareRenderType))
+                        LOG(LEVEL_INFO, "Rendertype changed to " << magic_enum::enum_name(m_HardwareRenderType))
                     }
                 }
                 ImGui::EndCombo();
@@ -147,7 +147,7 @@ void SceneGraph::RenderDebugUI() noexcept
                     {
                         m_HardwareFilterType = type;
                         m_ShouldUpdateHardwareTypes = true;
-                        LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Filtertype changed to " << magic_enum::enum_name(m_HardwareFilterType))
+                        LOG(LEVEL_INFO, "Filtertype changed to " << magic_enum::enum_name(m_HardwareFilterType))
                     }
                 }
                 ImGui::EndCombo();
@@ -162,7 +162,7 @@ void SceneGraph::RenderDebugUI() noexcept
                 if (ImGui::Selectable(TO_C_STR(id)) && m_CurrentScene != id)
                 {
                     m_CurrentScene = id;
-                    LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Scene\n " << m_CurrentScene + 1 << " / " << m_pScenes.size())
+                    LOG(LEVEL_INFO, "Scene\n " << m_CurrentScene + 1 << " / " << m_pScenes.size())
                 }
             }
             ImGui::EndCombo();
@@ -172,9 +172,9 @@ void SceneGraph::RenderDebugUI() noexcept
         if (ImGui::Checkbox("Rotation", &m_AreObjectsRotating))
         {
             if (m_AreObjectsRotating)
-                LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Object rotation turned On")
+                LOG(LEVEL_INFO, "Object rotation turned On")
             else
-                LOG(LEVEL_INFO, "SceneGraph::RenderDebugUI()", "Object rotation turned Off")
+                LOG(LEVEL_INFO, "Object rotation turned Off")
         }
 
         // Camera Variables
@@ -191,6 +191,26 @@ void SceneGraph::RenderDebugUI() noexcept
         const auto yaw = pCam->GetYaw();
         ImGui::BulletText("pitch: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(pitch));
         ImGui::BulletText("yaw: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(yaw));
+
+        ImGui::Text("Forward");
+        const auto forward = pCam->GetForward();
+        ImGui::BulletText("x: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(forward.x));
+        ImGui::BulletText("y: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(forward.y));
+        ImGui::BulletText("z: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(forward.z));
+
+        ImGui::Text("Right");
+        const auto right = pCam->GetForward();
+        ImGui::BulletText("x: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(right.x));
+        ImGui::BulletText("y: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(right.y));
+        ImGui::BulletText("z: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(right.z));
+
+        ImGui::Text("Up");
+        const auto up = pCam->GetForward();
+        ImGui::BulletText("x: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(up.x));
+        ImGui::BulletText("y: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(up.y));
+        ImGui::BulletText("z: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(up.z));
+
+        
     }
     ImGui::End();
 }

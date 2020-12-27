@@ -28,18 +28,17 @@ public:
     void AddMaterial(Material* pMaterial);
 
     //Getters
-    [[nodiscard]] constexpr auto GetMaterials() noexcept -> std::unordered_map<uint32_t, Material*>& { return m_Materials; }
-    [[nodiscard]] auto GetMaterial(const int key) const noexcept -> Material* { return m_Materials.at(key); }
-    [[nodiscard]] auto GetMaterial(Mesh* pObject) const noexcept -> Material* { return GetMaterial(pObject->GetMaterialId()); }
+    [[nodiscard]] constexpr auto GetMaterials() noexcept -> std::unordered_map<std::string_view, Material*>& { return m_Materials; }
+    [[nodiscard]] auto GetMaterial(const std::string_view name) const noexcept -> Material* { return m_Materials.at(name); }
+    [[nodiscard]] auto GetMaterial(Mesh* pObject) const noexcept -> Material* { return GetMaterial(pObject->GetMaterialName()); }
     [[nodiscard]] auto AmountOfMaterials() const noexcept -> uint32_t { return static_cast<uint32_t>(m_Materials.size()); }
 
     //Workers
-    void ChangeFilterType();
 
 private:
 
     //Data Members
-    std::unordered_map<uint32_t, Material*> m_Materials;
+    std::unordered_map<std::string_view, Material*> m_Materials;
 
     SamplerType m_SamplerType;
 };

@@ -40,11 +40,11 @@ Renderer::Renderer(SDL_Window* pWindow)
 	SetImGuiRenderSystem(true);
 
 	//Objects and materials are initialized here as m_pDevice is needed for object initialization
-	MaterialManager::GetInstance()->AddMaterial(new MaterialMapped(m_pDevice, L"./Resources/Shaders/PosCol3D.fx", "./Resources/Textures/vehicle_diffuse.png", "./Resources/Textures/vehicle_normal.png", "./Resources/Textures/vehicle_gloss.png", "./Resources/Textures/vehicle_specular.png", 25.f, 1, false));
-	MaterialManager::GetInstance()->AddMaterial(new MaterialFlat(m_pDevice, L"./Resources/Shaders/FlatTransparency.fx", "./Resources/Textures/fireFX_diffuse.png", 2, true));
+	MaterialManager::GetInstance()->AddMaterial(new MaterialMapped(m_pDevice, L"./Resources/Shaders/PosCol3D.fx", "./Resources/Textures/vehicle_diffuse.png", "./Resources/Textures/vehicle_normal.png", "./Resources/Textures/vehicle_gloss.png", "./Resources/Textures/vehicle_specular.png", 25.f, "ShipMat", false));
+	MaterialManager::GetInstance()->AddMaterial(new MaterialFlat(m_pDevice, L"./Resources/Shaders/FlatTransparency.fx", "./Resources/Textures/fireFX_diffuse.png", "FireMat", true));
 	m_pSceneGraph->AddScene(0);
-	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/vehicle.obj", MaterialManager::GetInstance()->GetMaterial(1), glm::vec3(0, 0, 0)), 0);
-	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/fireFX.obj", MaterialManager::GetInstance()->GetMaterial(2), glm::vec3(0, 0, 0)), 0);
+	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/vehicle.obj", MaterialManager::GetInstance()->GetMaterial("ShipMat"), glm::vec3(0, 0, 0)), 0);
+	m_pSceneGraph->AddObjectToGraph(new Mesh(m_pDevice, "./Resources/Meshes/fireFX.obj", MaterialManager::GetInstance()->GetMaterial("FireMat"), glm::vec3(0, 0, 0)), 0);
 }
 
 Renderer::~Renderer()
@@ -264,12 +264,12 @@ void Renderer::SetupDirectXPipeline() noexcept
 	{
 		m_IsInitialized = false;
 		// todo log hresult
-		LOG(LEVEL_ERROR, "Renderer::SetupDirectXPipeline()", "DirectX initialization failed")
+		LOG(LEVEL_ERROR, "DirectX initialization failed")
 	}
 	else
 	{
 		m_IsInitialized = true;
-		LOG(LEVEL_SUCCESS, "Renderer::SetupDirectXPipeline()", "DirectX is ready")
+		LOG(LEVEL_SUCCESS, "DirectX is ready")
 	}
 }
 

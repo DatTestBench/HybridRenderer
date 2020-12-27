@@ -13,10 +13,24 @@ struct BoundingBox
     explicit BoundingBox(const VecType& min, const VecType& max)
         : minPoint(min)
         , maxPoint(max)
-    {}
+    {
+        UpdateInternal();
+    }
     
-    VecType minPoint;
-    VecType maxPoint;
+    union
+    {
+        VecType minPoint;
+        VecType bottomLeft;
+    };
+
+    union
+    {
+        VecType maxPoint;
+        VecType topRight;
+    };
+
+    VecType topLeft;
+    VecType bottomRight;
 
     [[nodiscard]] bool Contains(const VecType& testPoint) const
     {
@@ -29,6 +43,7 @@ struct BoundingBox
         {
             minPoint[i] = std::min(minPoint[i], newBound[i]);
             maxPoint[i] = std::max(maxPoint[i], newBound[i]);
+            UpdateInternal();
         }
     }
 
@@ -38,6 +53,7 @@ struct BoundingBox
         {
             minPoint[i] = minPoint[i] - margin;
             maxPoint[i] = maxPoint[i] + margin;
+            UpdateInternal();
         } 
     }
 
@@ -46,8 +62,15 @@ struct BoundingBox
        minPoint = glm::clamp(minPoint, lower, upper);
        maxPoint = glm::clamp(maxPoint, lower, upper);
     }
+    
+private:
+    //todo find an elegant solution for topLeft and bottomRight in 3D
+    void UpdateInternal() noexcept
+    {
+        topLeft = {minPoint.x, maxPoint.y};
+        bottomRight = {maxPoint.x, minPoint.y};
+    }
 };
-
 
 using BoundingBox2D = BoundingBox<glm::vec2>;
 using BoundingBox3D = BoundingBox<glm::vec3>;
@@ -73,16 +96,19 @@ struct TriangleResult
         weight2 /= scalar;
         return *this;
     }
+
+    void Normalize() noexcept
+    {
+        const auto total = weight0 + weight1 + weight2;
+        weight0 /= total;
+        weight1 /= total;
+        weight2 /= total;
+    }
 };
 
 #define ENUM_TO_C_STR(value) std::string(magic_enum::enum_name(value)).c_str()
 #define TO_C_STR(value) std::to_string(value).c_str()
 #define C_STR_FROM_VIEW(value) std::string(value).c_str()
 #define C_STR_FROM_RAW(value) std::string(value).c_str()
-
-// Wrappers for enums
-
-
-
 
 #endif // !GENERAL_HELPERS_HPP

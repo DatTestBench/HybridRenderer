@@ -75,77 +75,88 @@ void Camera::UpdateLookAtMatrix(float dT)
         if (buttonMask == (SDL_BUTTON_LMASK | SDL_BUTTON_RMASK))
         {
             //m_Origin.y -= m_MovementSensitivity * dMove.y;
-            worldMovement.y -= m_MovementSensitivity * dMove.y;
+            worldMovement.y -= m_MovementSensitivity * dMove.y * dT;
         }
         //Vertical (Y) movement in local space
         if (buttonMask == (SDL_BUTTON_LMASK | SDL_BUTTON_MMASK))
         {
-            movement.y += m_MovementSensitivity * dMove.y;
+            movement.y += m_MovementSensitivity * dMove.y * dT;
         }
         //Horizontal rotation + Horizontal movement (Z) in local space
         if (buttonMask == SDL_BUTTON_LMASK)
         {
-            m_Yaw -= glm::radians(dMove.x * m_RotationSensitivity);
-            movement.z += m_MovementSensitivity * dMove.y;
+            m_Yaw += glm::radians(dMove.x * m_RotationSensitivity);
+            movement.z += m_MovementSensitivity * dMove.y * dT;
         }
         //Horizontal movement (X) in local space + Horizontal movement (Z) in local space
         if (buttonMask == SDL_BUTTON_MMASK)
         {
-            movement.x += m_MovementSensitivity * dMove.x;
-            movement.z += m_MovementSensitivity * dMove.y;
+            movement.x += m_MovementSensitivity * dMove.x * dT;
+            movement.z += m_MovementSensitivity * dMove.y * dT;
         }
         //Free cam rotation
         if (buttonMask == SDL_BUTTON_RMASK)
         {
-            m_Yaw -= glm::radians(dMove.x * m_RotationSensitivity);
-            m_Pitch -= glm::radians(dMove.y * m_RotationSensitivity);
+            m_Yaw += glm::radians(dMove.x * m_RotationSensitivity);
+            m_Pitch += glm::radians(dMove.y * m_RotationSensitivity);
         }
 
         //Keyboard movement (Y) in world space
         if (keyState[SDL_SCANCODE_E])
         {
             //m_Origin.y += m_MovementSensitivity * dT;
-            worldMovement.y += m_MovementSensitivity;
+            worldMovement.y += m_MovementSensitivity * dT;
         }
         if (keyState[SDL_SCANCODE_Q])
         {
             //m_Origin.y -= m_MovementSensitivity * dT;
-            worldMovement.y -= m_MovementSensitivity;
+            worldMovement.y -= m_MovementSensitivity * dT;
         }
 
-
+        auto forward = m_Forward;
+        //if (m_RenderSystem == Software)
+            //forward *= -1;
+        
         //Keyboard movement (X/Z) in local space
         if (keyState[SDL_SCANCODE_W])
         {
-            movement.z -= m_MovementSensitivity;
+            movement += forward * m_MovementSensitivity * dT;
+            //movement.z -= m_MovementSensitivity;
         }
         if (keyState[SDL_SCANCODE_S])
         {
-            movement.z += m_MovementSensitivity;
+            movement -= forward * m_MovementSensitivity * dT;
+            //movement.z += m_MovementSensitivity;
         }
         if (keyState[SDL_SCANCODE_A])
         {
-            movement.x -= m_MovementSensitivity;
+            movement -= m_Right * m_MovementSensitivity * dT;
+            //movement.x -= m_MovementSensitivity;
         }
         if (keyState[SDL_SCANCODE_D])
         {
-            movement.x += m_MovementSensitivity;
+            movement+= m_Right * m_MovementSensitivity * dT;
+            //movement.x += m_MovementSensitivity;
         }
     }
     //Apply local space movement (m_LookAt needs to be transposed for D3D because...reasons??? - 
     //seemingly because vector transformation need the transposed inverse of the world matrix)
     //Some movement is still broken when y < 0
-    switch (m_RenderSystem)
-    {
-    case Software:
-        m_Origin += (glm::vec3(m_CameraMatrix * glm::vec4(movement, 0)) + worldMovement) * dT;
-        break;
-    case D3D:
-        m_Origin += (glm::vec3(glm::transpose(m_CameraMatrix) * glm::vec4(movement, 0)) + worldMovement) * dT;
-        break;
-    default:
-        break;
-    }
+    //switch (m_RenderSystem)
+    //{
+    //case Software:
+    //    //m_Origin += (glm::vec3(glm::vec4(movement, 0)) + worldMovement) * dT;
+    //    m_Origin += (glm::vec3(m_CameraMatrix * glm::vec4(movement, 0)) + worldMovement) * dT;
+    //    break;
+    //case D3D:
+    //    //m_Origin += (glm::vec3(glm::vec4(movement, 0)) + worldMovement) * dT;
+    //    m_Origin += (glm::vec3((m_CameraMatrix * -1.f) * glm::vec4(movement, 0)) + worldMovement) * dT;
+    //    break;
+    //default:
+    //    break;
+    //}
+
+    m_Origin += movement + worldMovement;
 
     //Clamping pitch to prevent wonky behaviour when going over (or close to), 90 degrees.
     m_Pitch = glm::clamp(m_Pitch, glm::radians(-80.f), glm::radians(80.f));
@@ -155,19 +166,6 @@ void Camera::UpdateLookAtMatrix(float dT)
 
     //FPS Camera approach adapted from https://www.3dgep.com/understanding-the-view-matrix/
 
-    //Pure FPS camera
-    /*float cosPitch = cos(m_Pitch);
-    float sinPitch = sin(m_Pitch);
-    float cosYaw = cos(m_Yaw);
-    float sinYaw = sin(m_Yaw);
-
-    FVector4 forward{ - sinYaw * cosPitch, sinPitch, cosPitch * cosYaw };
-    FVector4 right{ cosYaw, 0, -sinYaw };
-    FVector4 up{ sinYaw * sinPitch, cosPitch, cosYaw * sinPitch };
-    FVector4 transXRot{ -Dot(right, FVector4(m_Origin)), -Dot(up, FVector4(m_Origin)), Dot(forward, FVector4(m_Origin)), 1 };
-    m_LookAt = FMatrix4(right, up, forward, transXRot);*/
-
-
     //Using intermediate approach as flipping the x and y of the forward vector also has to affect the right and up vector
     //FPS Camera for Forward, rest is lookat construction
     const auto cosPitch = cos(m_Pitch);
@@ -175,63 +173,60 @@ void Camera::UpdateLookAtMatrix(float dT)
     const auto cosYaw = cos(m_Yaw);
     const auto sinYaw = sin(m_Yaw);
 
-    glm::vec3 forward{};
     glm::vec3 worldUp{0, 1, 0};
-    glm::vec3 right{};
-    glm::vec3 up{};
 
     // todo this whole things doesn't really make sense. The cross products should be inverted for D3D, using glm::lookatRH/lookatLH should work, but doesn't. For now it works ish, but this is not how it should be
     switch (m_RenderSystem)
     {
     case Software:
         {
-            m_Forward = {sinYaw * cosPitch, -sinPitch, cosPitch * cosYaw};
-            m_Right = glm::normalize(glm::cross(worldUp, m_Forward));
+            m_Forward = -glm::normalize(glm::vec3(-sinYaw * cosPitch, sinPitch, cosPitch * cosYaw));
+            /*m_Right = glm::normalize(glm::cross(worldUp, m_Forward));
             m_Up = glm::normalize(glm::cross(m_Forward, m_Right));
-
-            //m_ViewMatrix = glm::lookAtRH(m_Origin, m_Origin + forward, m_Up);
-            //m_ViewMatrix = bme::LookAtRH(m_Origin, forward, worldUp);
-
-
-            m_CameraMatrix = glm::mat4({m_Right, 0},
-                                       {m_Up, 0},
-                                       {m_Forward, 0},
-                                       glm::vec4(m_Origin.x, m_Origin.y, m_Origin.z, 1.f));
-
-
-            break;
-        }
-    case D3D:
-        {
-            m_Forward = {-sinYaw * cosPitch, sinPitch, cosPitch * cosYaw};
-            m_Right = glm::normalize(glm::cross(worldUp, m_Forward));
-            m_Up = glm::normalize(glm::cross(m_Forward, m_Right));
-
-            //m_ViewMatrix = glm::lookAtLH(m_Origin, m_Origin + m_Forward, m_Up);
-            //m_ViewMatrix = bme::LookAtLH(m_Origin, m_Forward, worldUp);
             
             m_CameraMatrix = glm::mat4({m_Right, 0},
                                        {m_Up, 0},
                                        {m_Forward, 0},
-                                       glm::vec4(m_Origin.x, m_Origin.y, -m_Origin.z, 1.f));
+                                       glm::vec4(m_Origin.x, m_Origin.y, m_Origin.z, 1.f));*/
 
+
+            m_CameraMatrix = glm::lookAtRH(m_Origin, m_Origin + m_Forward, worldUp);
+            
+            m_Right = glm::row(m_CameraMatrix, 0);
+            m_Up = glm::row(m_CameraMatrix, 1);
+            m_Forward = -glm::row(m_CameraMatrix, 2);
+            break;
+        }
+    case D3D:
+        {
+            m_Forward = glm::normalize(glm::vec3(sinYaw * cosPitch, -sinPitch, cosPitch * cosYaw));
+
+            /*
+            m_Right = glm::normalize(glm::cross(worldUp, m_Forward));
+            m_Up = glm::normalize(glm::cross(m_Forward, m_Right));
+
+            m_CameraMatrix = glm::mat4({m_Right, 0},
+                                       {m_Up, 0},
+                                       {m_Forward, 0},
+                                       glm::vec4(m_Origin.x, m_Origin.y, -m_Origin.z, 1.f));
+                                       */
+            auto tempO = m_Origin;
+            tempO.z = -tempO.z;
+            
+            m_CameraMatrix =glm::lookAtLH(tempO, tempO + m_Forward, worldUp);
+
+            m_Right = glm::row((m_CameraMatrix), 0);
+            m_Up = glm::row((m_CameraMatrix), 1);
+            m_Forward = glm::row((m_CameraMatrix), 2);
+
+            m_Right.z = -m_Right.z;
+            m_Up.z = -m_Up.z;
+            m_Forward.z = -m_Forward.z;
             break;
         }
     default:
         break;
     }
-
-    //FPS Camera for everything, lookat for final step, not used anymore as the flipping of the x and y in the forward vector -
-    //also need to affect right and up vector creation
-    /*float cosPitch = cos(m_Pitch);
-    float sinPitch = sin(m_Pitch);
-    float cosYaw = cos(m_Yaw);
-    float sinYaw = sin(m_Yaw);
-
-    FVector4 forward{-sinYaw * cosPitch, sinPitch, cosPitch * cosYaw };
-    FVector4 right{ cosYaw, 0, -sinYaw };
-    FVector4 up{ sinYaw * sinPitch, cosPitch, cosYaw * sinPitch };
-    m_LookAt = FMatrix4(right, up, forward, FVector4(m_Origin.x, m_Origin.y, -m_Origin.z, 1.f));*/
 }
 
 /*Software*/
@@ -240,25 +235,32 @@ void Camera::MakeScreenSpace(Mesh* pMesh) const
 {
     std::vector<VertexOutput> sSVertices;
 
-    const auto viewProjWorldMatrix = m_ProjectionMatrix * glm::inverse(m_CameraMatrix) * pMesh->GetWorld();
+    const auto meshWorld = pMesh->GetWorld();
+    const auto meshWorld3 = glm::mat3(meshWorld);
+    const auto viewProjWorldMatrix = m_ProjectionMatrix * m_CameraMatrix * meshWorld;
 
+    
+    
     for (const auto& v : pMesh->GetVertices())
     {
-        const auto worldMat3 = glm::mat3(pMesh->GetWorld());
+        
         VertexOutput sSV{};
         sSV.uv = v.uv;
-        sSV.worldPos = glm::vec4(v.pos, 1.f) * pMesh->GetWorld();
+        sSV.worldPos = meshWorld * glm::vec4(v.pos, 1.f);
 
-        sSV.pos = viewProjWorldMatrix * glm::vec4(v.pos, 1);
-        sSV.normal = v.normal * worldMat3;
-        sSV.tangent = v.tangent * worldMat3;
+        sSV.pos = viewProjWorldMatrix * glm::vec4(v.pos, 1.f);
+        sSV.normal = v.normal * meshWorld3;
+        sSV.tangent = v.tangent * meshWorld3;
 
+        // Perspective transform
         sSV.pos.x /= sSV.pos.w;
         sSV.pos.y /= sSV.pos.w;
         sSV.pos.z /= sSV.pos.w;
 
-        sSV.viewDirection = glm::normalize(worldMat3 * v.pos - m_Origin);
-        if (sSV.pos.x < -1 || sSV.pos.x > 1 || sSV.pos.y < -1 || sSV.pos.y > 1 || sSV.pos.z < 0 || sSV.pos.z > 1)
+        sSV.viewDirection = glm::normalize(meshWorld * glm::vec4(v.pos, 1.f) - glm::vec4(m_Origin.x, m_Origin.y, -m_Origin.z, 1.f));
+        if (sSV.pos.x < -1 || sSV.pos.x > 1
+            || sSV.pos.y < -1 || sSV.pos.y > 1
+            || sSV.pos.z < 0 || sSV.pos.z > 1)
         {
             sSV.culled = true;
         }
@@ -267,6 +269,8 @@ void Camera::MakeScreenSpace(Mesh* pMesh) const
             sSV.culled = false;
         }
 
+    
+        // Convert to screenspace    
         sSV.pos.x = (sSV.pos.x + 1) / 2 * m_Width;
         sSV.pos.y = (1 - sSV.pos.y) / 2 * m_Height;
         sSVertices.push_back(sSV);

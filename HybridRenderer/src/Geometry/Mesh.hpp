@@ -39,7 +39,7 @@ public:
     /*General*/
     void Update(float dT, float rotationSpeed) noexcept;
     /*Software*/
-    bool Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height);
+    void Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height);
     /*D3D*/
     void Render(ID3D11DeviceContext* pDeviceContext, Camera* pCamera) const noexcept;
 
@@ -53,14 +53,14 @@ public:
 
     //Getters
     /*General*/
-    [[nodiscard]] constexpr auto GetMaterialId() const noexcept -> uint32_t { return m_MaterialId; }
+    [[nodiscard]] constexpr auto GetMaterialName() const noexcept -> std::string_view { return m_MaterialName; }
     [[nodiscard]] auto GetWorld() const noexcept -> glm::mat4 { return m_WorldMatrix; }
     [[nodiscard]] constexpr auto GetVertices() const noexcept -> const std::vector<VertexInput>& { return m_VertexBuffer; }
 
 
 private:
     /*General*/
-    uint32_t m_MaterialId;
+    std::string_view m_MaterialName;
     glm::mat4 m_WorldMatrix;
     glm::vec3 m_Origin;
     float m_RotationAngle;
@@ -72,11 +72,12 @@ private:
     std::vector<VertexInput> m_HardwareVertexBuffer;
     std::vector<VertexOutput> m_SSVertices;
 
-    [[nodiscard]] bool AssembleTriangle(uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height);
     [[nodiscard]] RGBColor PixelShading(const VertexOutput& v) const noexcept;
     [[nodiscard]] BoundingBox2D MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, uint32_t maxScreenWidth = INT_MAX,
                                                                  uint32_t maxScreenHeight = INT_MAX) const noexcept;
 
+    void RasterizeTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, uint32_t width, uint32_t height) const noexcept;
+    
     /*D3D*/
     ID3D11InputLayout* m_pVertexLayout;
     ID3D11Buffer* m_pVertexBuffer;

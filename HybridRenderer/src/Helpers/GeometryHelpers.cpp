@@ -22,6 +22,7 @@ void bgh::CalculateWeightArea(const glm::vec2& pixelPoint, const VertexOutput& v
     triResult.weight0 = signedAreaTriV0;
     triResult.weight1 = signedAreaTriV1;
     triResult.weight2 = signedAreaTriV2;
+    triResult.Normalize();
 }
 
 bool bgh::IsPointInTriangle(const TriangleResult& triResult) noexcept

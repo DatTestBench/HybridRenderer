@@ -13,86 +13,41 @@ class MaterialMapped final : public Material
 public:
     MaterialMapped(ID3D11Device* pDevice, const std::wstring& effectPath, const std::string& diffusePath,
                    const std::string& normalPath, const std::string& glossPath, const std::string& specularPath,
-                   const float shininess, const uint32_t id, const bool hasTransparency = false)
-        : Material(pDevice, effectPath, id, hasTransparency),
+                   const float shininess, const std::string_view name, const bool hasTransparency = false)
+        : Material(pDevice, effectPath, name, hasTransparency),
           m_pDiffuseMap(new Texture(pDevice, diffusePath)),
           m_pNormalMap(new Texture(pDevice, normalPath)),
           m_pGlossinessMap(new Texture(pDevice, glossPath)),
           m_pSpecularMap(new Texture(pDevice, specularPath)),
           m_Shininess(shininess)
     {
-        m_pDiffuseMapVariable = m_pEffect->GetVariableByName("gDiffuseMap")->AsShaderResource();
-        if (!m_pDiffuseMapVariable->IsValid())
-        {
-            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gDiffuseMap not found")
-            // LOG_OLD std::wcout << L"Variable gDiffuseMap not found\n";
-        }          
+        D3DLOAD_VAR(m_pEffect, m_pDiffuseMapVariable, "gDiffuseMap", AsShaderResource)
+        D3DLOAD_VAR(m_pEffect, m_pNormalMapVariable, "gNormalMap", AsShaderResource)
+        D3DLOAD_VAR(m_pEffect, m_pGlossinessMapVariable, "gGlossinessMap", AsShaderResource)
+        D3DLOAD_VAR(m_pEffect, m_pSpecularMapVariable, "gSpecularMap", AsShaderResource)
 
-        m_pNormalMapVariable = m_pEffect->GetVariableByName("gNormalMap")->AsShaderResource();
-        if (!m_pNormalMapVariable->IsValid())
-        {
-            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gNormalMap not found")
-            // LOG_OLD std::wcout << L"Variable gNormalMap not found\n";
-        }          
+        D3DLOAD_VAR(m_pEffect, m_pMatWorldVariable, "gWorldMatrix", AsMatrix)
+        D3DLOAD_VAR(m_pEffect, m_pMatInverseViewVariable, "gInverseViewMatrix", AsMatrix)
 
-        m_pGlossinessMapVariable = m_pEffect->GetVariableByName("gGlossinessMap")->AsShaderResource();
-        if (!m_pGlossinessMapVariable->IsValid())
-        {
-            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gGlossinessMap not found")
-            // LOG_OLD std::wcout << L"Variable gGlossinessMap not found\n";
-        }            
-
-        m_pSpecularMapVariable = m_pEffect->GetVariableByName("gSpecularMap")->AsShaderResource();
-        if (!m_pSpecularMapVariable->IsValid())
-        {
-            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gSpecularMap not found")
-            // LOG_OLD std::wcout << L"Variable gSpecularMap not found\n";
-        }          
-
-        m_pMatWorldVariable = m_pEffect->GetVariableByName("gWorldMatrix")->AsMatrix();
-        if (!m_pMatWorldVariable->IsValid())
-        {
-            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gWorldMatrix not found")
-            // LOG_OLD std::wcout << L"Variable gWorldMatrix not found\n";
-        }            
-
-        m_pMatInverseViewVariable = m_pEffect->GetVariableByName("gInverseViewMatrix")->AsMatrix();
-        if (!m_pMatInverseViewVariable->IsValid())
-        {
-            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gInverseViewMatrix not found")
-            // LOG_OLD std::wcout << L"Variable gInverseViewMatrix not found\n";
-        }
-
-        m_pShininessVariable = m_pEffect->GetVariableByName("gShininess")->AsScalar();
-        if (!m_pShininessVariable->IsValid())
-        {
-            LOG(LEVEL_ERROR, "MaterialMapped::MaterialMapped()", "Variable gShininess not found")
-            // LOG_OLD std::wcout << L"Variable gShininess not found\n";
-        }
-            
+        D3DLOAD_VAR(m_pEffect, m_pShininessVariable, "gShininess", AsScalar)
     }
 
     virtual ~MaterialMapped()
     {
         //Releasing scalar variables
-        if (m_pShininessVariable)
-            m_pShininessVariable->Release();
+        SafeRelease(m_pShininessVariable);
 
         //Releasing matrix variables
-        if (m_pMatInverseViewVariable)
-            m_pMatInverseViewVariable->Release();
-        if (m_pMatWorldVariable)
-            m_pMatWorldVariable->Release();
+        SafeRelease(m_pMatInverseViewVariable);
+        SafeRelease(m_pMatWorldVariable);
+
 
         //Releasing map variables
-        if (m_pSpecularMapVariable != nullptr)
-            m_pSpecularMapVariable->Release();
-        if (m_pGlossinessMapVariable != nullptr)
-            m_pGlossinessMapVariable->Release();
-        if (m_pNormalMapVariable != nullptr)
-            m_pNormalMapVariable->Release();
-        if (m_pDiffuseMapVariable != nullptr)
-            m_pDiffuseMapVariable->Release();
+        SafeRelease(m_pSpecularMapVariable);
+        SafeRelease(m_pGlossinessMapVariable);
+        SafeRelease(m_pNormalMapVariable);
+        SafeRelease(m_pDiffuseMapVariable);
+
 
         //Deleting software maps
         SafeDelete(m_pDiffuseMap);
@@ -105,10 +60,10 @@ public:
 
     //Workers
     /*Software*/
-    RGBColor Shade(const VertexOutput& v, const glm::vec3&, const glm::vec3&, const glm::vec3&) const override
+    RGBColor Shade(const VertexOutput& v, const glm::vec3& lightDir, const glm::vec3&, const glm::vec3&) const override
     {
         const auto pCam = SceneGraph::GetCamera();
-        const auto viewDirection = glm::normalize(v.worldPos - glm::vec3(glm::column(pCam->GetInverseViewMatrix(), 3)));
+        const auto viewDirection = glm::normalize(v.worldPos - pCam->GetPosition());
     
         RGBColor finalColor = {0.f, 0.f, 0.f};
         // variables
@@ -124,7 +79,7 @@ public:
         RGBColor diffuseColor{0.f};
         if (m_pDiffuseMap!= nullptr)
         {
-            float diffuseStrength = pow((glm::dot(-mappedNormal, lightDirection) * 0.5f) + 0.5f, 2.f);
+            float diffuseStrength = pow((glm::dot(-mappedNormal, lightDir) * 0.5f) + 0.5f, 2.f);
             //auto diffuseStrength = glm::dot(-mappedNormal, lightDirection);
             diffuseStrength = std::max(0.f, diffuseStrength);
             diffuseStrength /= glm::pi<float>();
@@ -136,7 +91,7 @@ public:
         RGBColor specularColor{0.f};
         if (m_pSpecularMap != nullptr && m_pGlossinessMap != nullptr)
         {
-            specularColor = BRDF::Phong(m_pSpecularMap->Sample(v.uv), m_pGlossinessMap->SampleF(v.uv) * m_Shininess, lightDirection, viewDirection, mappedNormal);
+            specularColor = BRDF::Phong(m_pSpecularMap->Sample(v.uv), m_pGlossinessMap->SampleF(v.uv) * m_Shininess, lightDir, -v.viewDirection, mappedNormal);
         }
 
         finalColor = diffuseColor + specularColor;
@@ -171,11 +126,11 @@ public:
             m_pSpecularMapVariable->SetResource(m_pSpecularMap->GetTextureView());
     }
 
-    void SetMatrices(const glm::mat4& projectionMat, const glm::mat4& inverseViewMat /*This is the OBN*/, const glm::mat4& worldMat) override
+    void SetMatrices(const glm::mat4& projectionMat, const glm::mat4& viewMat, const glm::mat4& worldMat) override
     {
-        auto worldViewProjection = projectionMat * glm::inverse(inverseViewMat) * worldMat;
+        auto worldViewProjection = projectionMat * viewMat * worldMat;
         auto worldMatrix = worldMat;
-        auto inverseViewMatrix = inverseViewMat;
+        auto inverseViewMatrix = glm::inverse(viewMat);
 
         m_pMatWorldViewProjVariable->SetMatrix(&worldViewProjection[0][0]);
         m_pMatWorldVariable->SetMatrix(&worldMatrix[0][0]);

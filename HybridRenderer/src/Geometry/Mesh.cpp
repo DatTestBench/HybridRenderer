@@ -3,9 +3,7 @@
 
 #include <glm/gtc/constants.hpp>
 #include <glm/gtx/transform.hpp>
-#pragma warning(disable : 4201)
 #include <glm/gtx/euler_angles.hpp>
-#pragma warning(default : 4201)
 
 #include "Helpers/GeneralHelpers.hpp"
 #include "Helpers/GeometryHelpers.hpp"
@@ -14,8 +12,9 @@
 #include "Scene/SceneGraph.hpp"
 #include "Rendering/Camera.hpp"
 
+
 Mesh::Mesh(ID3D11Device* pDevice, const std::string& modelPath, Material* pMaterial, const glm::vec3& origin)
-    : m_MaterialId(pMaterial->GetId()),
+    : m_MaterialName(pMaterial->GetName()),
       m_Origin(origin),
       m_Topology(PrimitiveTopology::TriangleList) //Triangle strip is implemented, but can not be used currently
 {
@@ -39,193 +38,117 @@ Mesh::~Mesh()
 /*General*/
 void Mesh::Update(const float dT, const float rotationSpeed) noexcept
 {
-    glm::mat4 rotationMatrix{};
     m_RotationAngle += rotationSpeed * dT;
+    //rollover
     m_RotationAngle = m_RotationAngle > glm::two_pi<float>() ? m_RotationAngle - glm::two_pi<float>() : m_RotationAngle;
-    switch (SceneGraph::GetInstance()->GetRenderSystem())
-    {
-    case Software:
-        rotationMatrix = glm::eulerAngleY(m_RotationAngle);
-        break;
-    case D3D:
-        //Flipping the axis the model is rotating around, because DirectX is lefthanded!
-        rotationMatrix = glm::rotate(m_RotationAngle, glm::vec3(0, -1, 0));
-        break;
-    default:
-        break;
-    }
-    m_WorldMatrix = glm::translate(m_Origin) * rotationMatrix * glm::scale(glm::vec3(1.f, 1.f, 1.f));
+    
+    auto yAxis = 1.f;
+    // flip for DX
+    if (SceneGraph::GetInstance()->GetRenderSystem() == D3D)
+        yAxis = -1.f;
+
+    m_WorldMatrix =
+        glm::translate(m_Origin) *
+        glm::rotate(m_RotationAngle, glm::vec3(0, yAxis, 0)) *
+        glm::scale(glm::vec3(1));
 }
 
 /*Software*/
-bool Mesh::Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, const uint32_t width, const uint32_t height)
+void Mesh::Rasterize(SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, const uint32_t width, const uint32_t height)
 {
-    auto meshHit = false;
-
     //Check if material on mesh should actually be rendered
-    if (MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->HasTransparency())
-    {
-        return meshHit;
-    }
+    if (MaterialManager::GetInstance()->GetMaterial(m_MaterialName)->HasTransparency())
+        return;
 
-    uint32_t increment{};
-    switch (m_Topology)
+    for (uint32_t i = 0; i < m_IndexBuffer.size() - 2; i += 3)
     {
-    case PrimitiveTopology::TriangleList:
-        increment = 3;
-        break;
-    case PrimitiveTopology::TriangleStrip:
-        increment = 1;
-        break;
-    default:
-        break;
-    }
+        const auto i0 = m_IndexBuffer[i];
+        const auto i1 = m_IndexBuffer[i+1];
+        const auto i2 = m_IndexBuffer[i+2];
 
-    for (uint32_t i = 0; i < m_IndexBuffer.size() - 2; i += increment)
-    {
-        if (AssembleTriangle(i, backBuffer, backBufferPixels, depthBuffer, width, height))
-            meshHit = true;
-    }
+        const auto v0 = m_SSVertices.at(i0);
+        const auto v1 = m_SSVertices.at(i1);
+        const auto v2 = m_SSVertices.at(i2);
 
-    return meshHit;
+        
+        if (v0.culled || v1.culled || v2.culled)
+            continue;
+        
+        RasterizeTriangle(v0, v1, v2, backBuffer, backBufferPixels, depthBuffer, width, height);
+    }
 }
 
-bool Mesh::AssembleTriangle(const uint32_t idx, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, const uint32_t width, const uint32_t height)
+
+void Mesh::RasterizeTriangle(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, SDL_Surface* backBuffer, uint32_t* backBufferPixels, float* depthBuffer, const uint32_t width, const uint32_t height) const noexcept 
 {
-    VertexOutput v0{};
-    VertexOutput v1{};
-    VertexOutput v2{};
-
-    switch (m_Topology)
-    {
-    case PrimitiveTopology::TriangleList:
-        v0 = m_SSVertices[m_IndexBuffer[idx]];
-
-        if (v0.pos.z < 0)
-            return false;
-        v1 = m_SSVertices[m_IndexBuffer[idx + 1]];
-
-        if (v1.pos.z < 0)
-            return false;
-        v2 = m_SSVertices[m_IndexBuffer[idx + 2]];
-
-        if (v2.pos.z < 0)
-            return false;
-        break;
-    case PrimitiveTopology::TriangleStrip:
-        if (m_IndexBuffer[idx] == m_IndexBuffer[idx + 1]
-            || m_IndexBuffer[idx + 1] == m_IndexBuffer[idx + 2]
-            || m_IndexBuffer[idx + 2] == m_IndexBuffer[idx])
-            return false;
-
-        v0 = m_SSVertices[m_IndexBuffer[idx]];
-        if (v0.pos.z < 0)
-            return false;
-
-        v1 = m_SSVertices[m_IndexBuffer[idx + 1 + idx % 2]];
-        if (v1.pos.z < 0)
-            return false;
-
-        v2 = m_SSVertices[m_IndexBuffer[idx + 2 - idx % 2]];
-        if (v2.pos.z < 0)
-            return false;
-        break;
-    default:
-        break;
-    }
-
-    //Frustrum culling - Cut my ship into pieces...
-    if (v0.culled || v1.culled || v2.culled)
-    {
-        return false;
-    }
-
     const auto boundingBox = MakeBoundingBox(v0, v1, v2, width, height);
 
-    RGBColor finalColor(0);
-
-    for (auto r = static_cast<uint32_t>(boundingBox.minPoint.y); r < static_cast<uint32_t>(boundingBox.maxPoint.y); ++r)
+    for (auto r = static_cast<uint32_t>(boundingBox.topLeft.y); r > static_cast<uint32_t>(boundingBox.bottomRight.y); --r)
     {
-        for (auto c = static_cast<uint32_t>(boundingBox.minPoint.x); c < static_cast<uint32_t>(boundingBox.maxPoint.x); ++c)
+        for (auto c = static_cast<uint32_t>(boundingBox.topLeft.x); c < static_cast<uint32_t>(boundingBox.bottomRight.x); ++c)
         {
             TriangleResult triResult;
             bgh::CalculateWeightArea(glm::vec2(c, r), v0, v1, v2, triResult);
 
-            if (bgh::IsPointInTriangle(triResult))
+            if (!bgh::IsPointInTriangle(triResult))
+                continue;
+
+            const auto [w0, w1, w2] = triResult;
+
+            // Depth test
+            auto zDepth =
+                ((1.f / v0.pos.z) * w0) +
+                ((1.f / v1.pos.z) * w1) +
+                ((1.f / v2.pos.z) * w2);
+
+            zDepth = 1.f / zDepth;
+
+            if (zDepth < depthBuffer[c + (r * width)])
             {
-                const auto totalArea = bme::Cross2D(glm::vec2(v1.pos - v2.pos), glm::vec2(v0.pos - v1.pos));
-                if (totalArea < 0)
-                    return false;
+                depthBuffer[c + (r * width)] = zDepth;
                 
-                triResult /= abs(totalArea);
+                auto depth =     
+                    ((1.f / v0.pos.w) * w0) +
+                    ((1.f / v1.pos.w) * w1) +
+                    ((1.f / v2.pos.w) * w2);
+                
+                depth = 1.f / depth;
 
-                // Just here for readability
-                const auto [w0, w1, w2] = triResult;
+                const auto interpolatedAttributes = Interpolate(v0, v1, v2, triResult, depth);
 
-                // Depth test
-                const auto depth =
-                    ((1.f / v0.pos.z) * w0) +
-                    ((1.f / v1.pos.z) * w1) +
-                    ((1.f / v2.pos.z) * w2);
-
-                const auto inverseDepth = 1.f / depth;
-
-                if (inverseDepth > 1.f || inverseDepth < 0.f)
-                    return false;
-
-                if (inverseDepth < depthBuffer[c + (r * width)])
+                RGBColor finalColor{};
+                switch (SceneGraph::GetInstance()->GetSoftwareRenderType())
                 {
-                    depthBuffer[c + (r * width)] = inverseDepth;
-
-                    const auto v0DepthInv = 1.f / v0.pos.w;
-                    const auto v1DepthInv = 1.f / v1.pos.w;
-                    const auto v2DepthInv = 1.f / v2.pos.w;
-
-
-                    // interpolated w component for attribute interpolation
-                    const auto interpolatedDepth = 1.f /
-                    (v0DepthInv * w0 +
-                    v1DepthInv * w1 +
-                    v2DepthInv * w2);
-
-                    const auto interpolatedAttributes = Interpolate(v0, v1, v2, triResult, interpolatedDepth);
-
-
-                    switch (SceneGraph::GetInstance()->GetSoftwareRenderType())
-                    {
-                    case SoftwareRenderType::Color:
-                        finalColor = PixelShading(interpolatedAttributes);
-                        break;
-                    case SoftwareRenderType::Depth:
-                        finalColor = RGBColor(bme::Remap(inverseDepth, 0.985f, 1.f));
-                        break;
-                    case SoftwareRenderType::Normal:
-                        finalColor = glm::abs(interpolatedAttributes.normal);
-                        break;
-                    case SoftwareRenderType::NormalMapped:
-                        finalColor = glm::abs(MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->GetMappedNormal(interpolatedAttributes));
-                        break;
-                    default:
-                        break;
-                    }
-
-                    backBufferPixels[c + (r * width)] = SDL_MapRGB(backBuffer->format,
-                                                                   static_cast<uint8_t>(finalColor.r * 255),
-                                                                   static_cast<uint8_t>(finalColor.g * 255),
-                                                                   static_cast<uint8_t>(finalColor.b * 255));
+                case SoftwareRenderType::Color:
+                    finalColor = PixelShading(interpolatedAttributes);
+                    break;
+                case SoftwareRenderType::Depth:
+                    finalColor = RGBColor(bme::Remap(zDepth, 0.985f, 1.f));
+                    break;
+                case SoftwareRenderType::Normal:
+                    finalColor = glm::abs(interpolatedAttributes.normal);
+                    break;
+                case SoftwareRenderType::NormalMapped:
+                    finalColor = glm::abs(MaterialManager::GetInstance()->GetMaterial(m_MaterialName)->GetMappedNormal(interpolatedAttributes));
+                    break;
+                default:
+                    break;
                 }
+
+                backBufferPixels[c + (r * width)] = SDL_MapRGB(backBuffer->format,
+                                                               static_cast<uint8_t>(finalColor.r * 255),
+                                                               static_cast<uint8_t>(finalColor.g * 255),
+                                                               static_cast<uint8_t>(finalColor.b * 255));
             }
         }
     }
-    return true;
 }
-
 
 RGBColor Mesh::PixelShading(const VertexOutput& v) const noexcept
 {
    //RGBColor finalColor = {0.f, 0.f, 0.f};
 
-   //const glm::vec3 lightDirection = {0.577f, -0.577f, -0.577f};
+   const glm::vec3 lightDirection = {0.577f, -0.577f, -0.577f};
 
    //const auto lightIntensity = 7.f;
    //const RGBColor lightColor = {1.f, 1.f, 1.f};
@@ -238,38 +161,21 @@ RGBColor Mesh::PixelShading(const VertexOutput& v) const noexcept
    //    lambertCosine;
 
    //MaxToOne(finalColor);
-    const auto pMat = MaterialManager::GetInstance()->GetMaterial(m_MaterialId);
-    return pMat->Shade(v, {}, v.viewDirection, {});
+    const auto pMat = MaterialManager::GetInstance()->GetMaterial(m_MaterialName);
+    return pMat->Shade(v, lightDirection, v.viewDirection, {});
 }
 
 BoundingBox2D Mesh::MakeBoundingBox(const VertexOutput& v0, const VertexOutput& v1, const VertexOutput& v2, const uint32_t maxScreenWidth, const uint32_t maxScreenHeight) const noexcept
 {
-    glm::vec2 boundingBoxMin = {static_cast<float>(maxScreenWidth - 1), static_cast<float>(maxScreenHeight - 1)};
-
-    glm::vec2 boundingBoxMax = {0, 0};
     BoundingBox2D boundingBox{ {static_cast<float>(maxScreenWidth - 1), static_cast<float>(maxScreenHeight - 1)}, {0,0} };
 
     for (auto& v : {v0, v1, v2})
     {
         boundingBox.Expand(glm::vec2(v.pos));
-        boundingBoxMin.x = std::min(boundingBoxMin.x, v.pos.x);
-        boundingBoxMin.y = std::min(boundingBoxMin.y, v.pos.y);
-        boundingBoxMax.x = std::max(boundingBoxMax.x, v.pos.x);
-        boundingBoxMax.y = std::max(boundingBoxMax.y, v.pos.y);
     }
-    //boundingBox.Expand(boundingBox.minPoint - 1.f);
-    //boundingBox.Expand(boundingBox.maxPoint + 1.f);
     boundingBox.AddMargin(1);
     
     boundingBox.Clamp({0.f, 0.f}, { maxScreenWidth, maxScreenHeight});
-
-    boundingBoxMin.x = std::max(boundingBoxMin.x, 0.f);
-    boundingBoxMin.y = std::max(boundingBoxMin.y, 0.f);
-
-    boundingBoxMax.x = std::min(boundingBoxMax.x + 1, static_cast<float>(maxScreenWidth - 1));
-    boundingBoxMax.y = std::min(boundingBoxMax.y + 1, static_cast<float>(maxScreenHeight - 1));
-
-    //return BoundingBox(boundingBoxMin, boundingBoxMax);
     return boundingBox;
 }
 
@@ -278,7 +184,7 @@ BoundingBox2D Mesh::MakeBoundingBox(const VertexOutput& v0, const VertexOutput& 
 void Mesh::Render(ID3D11DeviceContext* pDeviceContext, Camera* pCamera) const noexcept
 {
     //Check if material of mesh should actually be rendered
-    if (!SceneGraph::GetInstance()->IsTransparencyOn() && MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->HasTransparency())
+    if (!SceneGraph::GetInstance()->IsTransparencyOn() && MaterialManager::GetInstance()->GetMaterial(m_MaterialName)->HasTransparency())
     {
         return;
     }
@@ -298,17 +204,17 @@ void Mesh::Render(ID3D11DeviceContext* pDeviceContext, Camera* pCamera) const no
     pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     //Set Matrix
-    MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->SetMatrices(pCamera->GetProjectionMatrix(), pCamera->GetInverseViewMatrix(), m_WorldMatrix);
+    MaterialManager::GetInstance()->GetMaterial(m_MaterialName)->SetMatrices(pCamera->GetProjectionMatrix(), pCamera->GetViewMatrix(), m_WorldMatrix);
 
     //Set Maps (material-dependant)
-    MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->SetMaps();
+    MaterialManager::GetInstance()->GetMaterial(m_MaterialName)->SetMaps();
 
     //Render a triangle
     D3DX11_TECHNIQUE_DESC techDesc;
-    MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->GetTechnique()->GetDesc(&techDesc);
+    MaterialManager::GetInstance()->GetMaterial(m_MaterialName)->GetTechnique()->GetDesc(&techDesc);
     for (UINT p = 0; p < techDesc.Passes; ++p)
     {
-        MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->GetTechnique()->GetPassByIndex(p)->Apply(0, pDeviceContext);
+        MaterialManager::GetInstance()->GetMaterial(m_MaterialName)->GetTechnique()->GetPassByIndex(p)->Apply(0, pDeviceContext);
 
         pDeviceContext->DrawIndexed(m_AmountIndices, 0, 0);
     }
@@ -345,7 +251,7 @@ void Mesh::MakeMesh(ID3D11Device* pDevice, const std::vector<uint32_t>& indices,
 
     //Create the input layout
     D3DX11_PASS_DESC passDesc;
-    MaterialManager::GetInstance()->GetMaterial(m_MaterialId)->GetTechnique()->GetPassByIndex(0)->GetDesc(&passDesc);
+    MaterialManager::GetInstance()->GetMaterial(m_MaterialName)->GetTechnique()->GetPassByIndex(0)->GetDesc(&passDesc);
 
     result = pDevice->CreateInputLayout(
         vertexDesc,

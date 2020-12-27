@@ -11,37 +11,23 @@ class MaterialFlat final : public Material
 public:
     MaterialFlat(ID3D11Device* pDevice,
                  const std::wstring& effectPath,
-                 const std::string diffusePath,
-                 const uint32_t id,
+                 const std::string& diffusePath,
+                 const std::string_view name,
                  const bool hasTransparency = false)
-        : Material(pDevice, effectPath, id, hasTransparency),
+        : Material(pDevice, effectPath, name, hasTransparency),
           m_pDiffuseMap(new Texture(pDevice, diffusePath))
     {
-        m_pDiffuseMapVariable = m_pEffect->GetVariableByName("gDiffuseMap")->AsShaderResource();
-        if (!m_pDiffuseMapVariable->IsValid())
-        {
-            LOG(LEVEL_ERROR, "MaterialFlat::MaterialFlat()", "Variable gDiffuseMap not found")
-            // LOG_OLD std::wcout << L"Variable gDiffuseMap not found\n";
-        }
-        
-        m_pMatWorldVariable = m_pEffect->GetVariableByName("gWorldMatrix")->AsMatrix();
-        if (!m_pMatWorldVariable->IsValid())
-        {
-            LOG(LEVEL_ERROR, "MaterialFlat::MaterialFlat()", "Variable gWorldMatrix not found")
-            // LOG_OLD std::wcout << L"Variable gWorldMatrix not found\n";
-        }
+
+        D3DLOAD_VAR(m_pEffect, m_pDiffuseMapVariable, "gDiffuseMap", AsShaderResource)
+        D3DLOAD_VAR(m_pEffect, m_pMatWorldVariable, "gWorldMatrix", AsMatrix)
     }
 
     virtual ~MaterialFlat()
     {
-        if (m_pMatWorldVariable)
-            m_pMatWorldVariable->Release();
+        SafeRelease(m_pMatWorldVariable);
+        SafeRelease(m_pDiffuseMapVariable);
 
-        if (m_pDiffuseMapVariable)
-            m_pDiffuseMapVariable->Release();
-
-        if (m_pDiffuseMap != nullptr)
-            delete m_pDiffuseMap;
+        SafeDelete(m_pDiffuseMap);
     }
 
     DEL_ROF(MaterialFlat)
@@ -57,9 +43,9 @@ public:
             m_pDiffuseMapVariable->SetResource(m_pDiffuseMap->GetTextureView());
     }
 
-    void SetMatrices(const glm::mat4& projectionMat, const glm::mat4& inverseViewMat /*This is the ONB*/, const glm::mat4& worldMat) override
+    void SetMatrices(const glm::mat4& projectionMat, const glm::mat4& viewMat, const glm::mat4& worldMat) override
     {
-        auto worldViewProjection = projectionMat * glm::inverse(inverseViewMat) * worldMat;
+        auto worldViewProjection = projectionMat * viewMat * worldMat;
         auto worldMatrix = worldMat;
 
         m_pMatWorldViewProjVariable->SetMatrix(&worldViewProjection[0][0]);

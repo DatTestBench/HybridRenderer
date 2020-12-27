@@ -22,15 +22,15 @@
 
 #if _DEBUG || DEBUG_OVERRIDE
 	#if LOG_OUTPUT == LOG_CONSOLE_ONLY
-		#define LOG(level, header, input) std::cout << Logger::GetInstance()->RawOutput(LogLevel::level, header) << input << "\n";
+		#define LOG(level, input) std::cout << Logger::GetInstance()->RawOutput(LogLevel::level, __FUNCTION__) << input << "\n";
 	#elif LOG_OUTPUT == LOG_LOGGER_ONLY
-		#define LOG(level, header, input) Logger::GetInstance()->Log<LogLevel::level>(header) << input;
+		#define LOG(level, input) Logger::GetInstance()->Log<LogLevel::level>(__FUNCTION__) << input;
 	#elif LOG_OUTPUT == LOG_BOTH
-		#define LOG(level, header, input) std::cout << Logger::GetInstance()->RawOutput(LogLevel::level, header) << input << "\n"; \
-									Logger::GetInstance()->Log<LogLevel::level>(header) << input;
+		#define LOG(level, input) std::cout << Logger::GetInstance()->RawOutput(LogLevel::level, __FUNCTION__) << input << "\n"; \
+									Logger::GetInstance()->Log<LogLevel::level>(__FUNCTION__) << input;
 	#endif
 #else
-	#define LOG(level, header, input) {}
+	#define LOG(level, input) {}
 #endif
 
 enum class LogLevel : int16_t
@@ -70,7 +70,7 @@ public:
 	
 	/**
 	 * Log Function 
-	 * @param Level (Template) LogLevel
+	 * @template Level LogLevel
 	 * @param header Name of the scope this log was called in
 	 * */
 	template<LogLevel Level>

@@ -61,3 +61,13 @@ inline void SafeDelete(T* pObject)
         pObject = nullptr;
     }
 }
+
+template <class T>
+inline void SafeRelease(T* pResource)
+{
+    if (pResource != nullptr)
+    {
+        pResource->Release();
+        pResource = nullptr;
+    }
+}
