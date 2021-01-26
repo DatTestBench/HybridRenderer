@@ -46,7 +46,19 @@ class Camera;
 class SceneGraph final : public Singleton<SceneGraph>
 {
 public:
-    explicit SceneGraph(Token) : m_pTimer(nullptr), m_CurrentScene(0), m_SoftwareRenderType(SoftwareRenderType::Color), m_HardwareRenderType(HardwareRenderType::Color), m_HardwareFilterType(HardwareFilterType::Point), m_RenderSystem(Software), m_ShowTransparency(true), m_AreObjectsRotating(false), m_ShouldUpdateRenderSystem(false), m_ShouldUpdateHardwareTypes(false){}
+    explicit SceneGraph(Token)
+    : m_pTimer(nullptr)
+    , m_CurrentScene(0)
+    , m_SoftwareRenderType(SoftwareRenderType::Color)
+    , m_HardwareRenderType(HardwareRenderType::Color)
+    , m_HardwareFilterType(HardwareFilterType::Point)
+    , m_RenderSystem(Software)
+    , m_ShowTransparency(true)
+    , m_AreObjectsRotating(false)
+    , m_ShouldUpdateRenderSystem(false)
+    , m_ShouldUpdateHardwareTypes(false)
+    , m_RenderRTFrame(false)
+    , m_ShowRTRender(false){}
     ~SceneGraph();
 
     DEL_ROF(SceneGraph)
@@ -63,6 +75,7 @@ public:
     void SetTimer(Timer* pTimer) noexcept { m_pTimer = pTimer; }
     void ConfirmRenderSystemUpdate() noexcept { m_ShouldUpdateRenderSystem = false; }
     void ConfirmHardwareTypesUpdate() noexcept { m_ShouldUpdateHardwareTypes = false; }
+    void ConfirmRTRender() noexcept { m_RenderRTFrame = false; }
 
     //Getters
     [[nodiscard]] constexpr auto GetObjects() const noexcept -> const std::vector<Mesh*>& { return m_Objects; }
@@ -77,6 +90,8 @@ public:
     [[nodiscard]] auto AmountOfObjects() const noexcept -> uint32_t { return static_cast<uint32_t>(m_Objects.size()); }
     [[nodiscard]] constexpr auto ShouldUpdateRenderSystem() const noexcept -> bool { return m_ShouldUpdateRenderSystem; }
     [[nodiscard]] constexpr auto ShouldUpdateHardwareTypes() const noexcept -> bool { return m_ShouldUpdateHardwareTypes; }
+    [[nodiscard]] constexpr auto ShouldRenderRTFrame() const noexcept -> bool { return m_RenderRTFrame; }
+    [[nodiscard]] constexpr auto ShouldShowRTRender() const noexcept -> bool { return m_ShowRTRender; }
 private:
     //Data Members
     std::vector<Mesh*> m_Objects;
@@ -93,6 +108,12 @@ private:
     bool m_AreObjectsRotating;
     bool m_ShouldUpdateRenderSystem;
     bool m_ShouldUpdateHardwareTypes;
+    bool m_RenderRTFrame;
+    bool m_ShowRTRender;
+
+    void RenderSoftwareDebugUI() noexcept;
+    void RenderHardwareDebugUI() noexcept;
+
 };
 
 #endif // !SCENE_GRAPH_HPP

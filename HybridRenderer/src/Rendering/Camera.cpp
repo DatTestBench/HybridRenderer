@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "Rendering/Camera.hpp"
 
-#include <algorithm>
-
 #include "Geometry/Mesh.hpp"
 #include <SDL.h>
 #include <glm/gtc/matrix_access.hpp>

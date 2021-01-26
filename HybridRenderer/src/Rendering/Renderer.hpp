@@ -30,7 +30,9 @@ private:
 
     /*Software*/
     SDL_Surface* m_pSoftwareBuffer = nullptr;
+    SDL_Surface* m_pRTRender = nullptr;
     uint32_t* m_pSoftwareBufferPixels = nullptr;
+    uint32_t* m_pRTRenderPixels = nullptr;
     float* m_pDepthBuffer = nullptr;
 
     //Setup

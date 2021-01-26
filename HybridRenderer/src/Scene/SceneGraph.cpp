@@ -92,67 +92,12 @@ void SceneGraph::RenderDebugUI() noexcept
             ImGui::EndCombo();
         }
 
-        // Transparency
-        if (m_RenderSystem == D3D)
-        {
-            if (ImGui::Checkbox("Transparency", &m_ShowTransparency))
-            {
-                if (m_ShowTransparency)
-                    LOG(LEVEL_INFO, "Transparancy On")
-                else
-                    LOG(LEVEL_INFO, "Transparancy Off")
-            }
-        }
-        
-        // Software Render Type
-
         if (m_RenderSystem == Software)
-        {
-            if (ImGui::BeginCombo("Render Type", ENUM_TO_C_STR(m_SoftwareRenderType)))
-            {
-                for (auto [type, name] : magic_enum::enum_entries<SoftwareRenderType>())
-                {
-                    if (ImGui::Selectable(C_STR_FROM_VIEW(name)) && type != m_SoftwareRenderType)
-                    {
-                        m_SoftwareRenderType = type;
-                        LOG(LEVEL_INFO, "Rendertype changed to " << magic_enum::enum_name(m_SoftwareRenderType))
-                    }
-                }
-                ImGui::EndCombo();
-            }
-        }
+            RenderSoftwareDebugUI();
 
-        // Hardware Render Type and Filtering
         if (m_RenderSystem == D3D)
-        {
-            if (ImGui::BeginCombo("Render Type", ENUM_TO_C_STR(m_HardwareRenderType)))
-            {
-                for (auto [type, name] : magic_enum::enum_entries<HardwareRenderType>())
-                {
-                    if (ImGui::Selectable(C_STR_FROM_VIEW(name)) && type != m_HardwareRenderType)
-                    {
-                        m_HardwareRenderType = type;
-                        m_ShouldUpdateHardwareTypes = true;
-                        LOG(LEVEL_INFO, "Rendertype changed to " << magic_enum::enum_name(m_HardwareRenderType))
-                    }
-                }
-                ImGui::EndCombo();
-            }
-
-            if (ImGui::BeginCombo("Filter Type", ENUM_TO_C_STR(m_HardwareFilterType)))
-            {
-                for (const auto [type, name] : magic_enum::enum_entries<HardwareFilterType>())
-                {
-                    if (ImGui::Selectable(C_STR_FROM_VIEW(name)) && type != m_HardwareFilterType)
-                    {
-                        m_HardwareFilterType = type;
-                        m_ShouldUpdateHardwareTypes = true;
-                        LOG(LEVEL_INFO, "Filtertype changed to " << magic_enum::enum_name(m_HardwareFilterType))
-                    }
-                }
-                ImGui::EndCombo();
-            }
-        }
+            RenderHardwareDebugUI();
+        
         
         // Scene Selection
         if (ImGui::BeginCombo("SceneSelection", TO_C_STR(m_CurrentScene)))
@@ -178,41 +123,120 @@ void SceneGraph::RenderDebugUI() noexcept
         }
 
         // Camera Variables
-        const auto pCam = GetCamera();
+        if (ImGui::TreeNode("Camera Variables"))
+        {
+            const auto pCam = GetCamera();
         
-        ImGui::Text("Position");
-        const auto pos = pCam->GetPosition();
-        ImGui::BulletText("x: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(pos.x));
-        ImGui::BulletText("y: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(pos.y));
-        ImGui::BulletText("z: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(pos.z));
+            ImGui::Text("Position");
+            const auto pos = pCam->GetPosition();
+            ImGui::BulletText("x: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(pos.x));
+            ImGui::BulletText("y: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(pos.y));
+            ImGui::BulletText("z: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(pos.z));
 
-        ImGui::Text("Rotation");
-        const auto pitch = pCam->GetPitch();
-        const auto yaw = pCam->GetYaw();
-        ImGui::BulletText("pitch: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(pitch));
-        ImGui::BulletText("yaw: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(yaw));
+            ImGui::Text("Rotation");
+            const auto pitch = pCam->GetPitch();
+            const auto yaw = pCam->GetYaw();
+            ImGui::BulletText("pitch: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(pitch));
+            ImGui::BulletText("yaw: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(yaw));
 
-        ImGui::Text("Forward");
-        const auto forward = pCam->GetForward();
-        ImGui::BulletText("x: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(forward.x));
-        ImGui::BulletText("y: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(forward.y));
-        ImGui::BulletText("z: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(forward.z));
+            ImGui::Text("Forward");
+            const auto forward = pCam->GetForward();
+            ImGui::BulletText("x: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(forward.x));
+            ImGui::BulletText("y: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(forward.y));
+            ImGui::BulletText("z: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(forward.z));
 
-        ImGui::Text("Right");
-        const auto right = pCam->GetForward();
-        ImGui::BulletText("x: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(right.x));
-        ImGui::BulletText("y: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(right.y));
-        ImGui::BulletText("z: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(right.z));
+            ImGui::Text("Right");
+            const auto right = pCam->GetForward();
+            ImGui::BulletText("x: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(right.x));
+            ImGui::BulletText("y: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(right.y));
+            ImGui::BulletText("z: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(right.z));
 
-        ImGui::Text("Up");
-        const auto up = pCam->GetForward();
-        ImGui::BulletText("x: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(up.x));
-        ImGui::BulletText("y: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(up.y));
-        ImGui::BulletText("z: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(up.z));
+            ImGui::Text("Up");
+            const auto up = pCam->GetForward();
+            ImGui::BulletText("x: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(up.x));
+            ImGui::BulletText("y: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(up.y));
+            ImGui::BulletText("z: "); ImGui::SameLine(); ImGui::Text(TO_C_STR(up.z));
+
+            ImGui::TreePop();
+        }
 
         
     }
     ImGui::End();
+}
+
+void SceneGraph::RenderSoftwareDebugUI() noexcept
+{
+    // Software Render Type
+    if (ImGui::BeginCombo("Render Type", ENUM_TO_C_STR(m_SoftwareRenderType)))
+    {
+        for (auto [type, name] : magic_enum::enum_entries<SoftwareRenderType>())
+        {
+            if (ImGui::Selectable(C_STR_FROM_VIEW(name)) && type != m_SoftwareRenderType)
+            {
+                m_SoftwareRenderType = type;
+                LOG(LEVEL_INFO, "Rendertype changed to " << magic_enum::enum_name(m_SoftwareRenderType))
+            }
+        }
+        ImGui::EndCombo();
+    }
+
+    // RT Settings
+    if (ImGui::Button("Render RT Frame"))
+    {
+        m_RenderRTFrame = true;
+        LOG(LEVEL_INFO, "Rendering RT Frame")
+    }
+
+    if (ImGui::Checkbox("Show RT Render", &m_ShowRTRender))
+    {
+        if (m_ShowRTRender)
+            LOG(LEVEL_INFO, "Showing RT Render")
+        else
+            LOG(LEVEL_INFO, "Showing Rasterized Render")
+    }
+    
+}
+
+void SceneGraph::RenderHardwareDebugUI() noexcept
+{
+    // Transparency
+    if (ImGui::Checkbox("Transparency", &m_ShowTransparency))
+    {
+        if (m_ShowTransparency)
+            LOG(LEVEL_INFO, "Transparancy On")
+        else
+            LOG(LEVEL_INFO, "Transparancy Off")
+    }
+
+    // Hardware Render Type and Filtering
+    if (ImGui::BeginCombo("Render Type", ENUM_TO_C_STR(m_HardwareRenderType)))
+    {
+        for (auto [type, name] : magic_enum::enum_entries<HardwareRenderType>())
+        {
+            if (ImGui::Selectable(C_STR_FROM_VIEW(name)) && type != m_HardwareRenderType)
+            {
+                m_HardwareRenderType = type;
+                m_ShouldUpdateHardwareTypes = true;
+                LOG(LEVEL_INFO, "Rendertype changed to " << magic_enum::enum_name(m_HardwareRenderType))
+            }
+        }
+        ImGui::EndCombo();
+    }
+
+    if (ImGui::BeginCombo("Filter Type", ENUM_TO_C_STR(m_HardwareFilterType)))
+    {
+        for (const auto [type, name] : magic_enum::enum_entries<HardwareFilterType>())
+        {
+            if (ImGui::Selectable(C_STR_FROM_VIEW(name)) && type != m_HardwareFilterType)
+            {
+                m_HardwareFilterType = type;
+                m_ShouldUpdateHardwareTypes = true;
+                LOG(LEVEL_INFO, "Filtertype changed to " << magic_enum::enum_name(m_HardwareFilterType))
+            }
+        }
+        ImGui::EndCombo();
+    }
 }
 
 

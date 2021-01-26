@@ -105,11 +105,25 @@ void Renderer::Render() const
 			ImGui::NewFrame();
 			
 			// Render
-			for (auto pObject : m_pSceneGraph->GetCurrentSceneObjects())
+			if (m_pSceneGraph->ShouldShowRTRender())
 			{
-				m_pSceneGraph->GetCamera()->MakeScreenSpace(pObject);
-				pObject->Rasterize(m_pSoftwareBuffer, m_pSoftwareBufferPixels, m_pDepthBuffer, m_Width, m_Height);
+				memcpy(m_pSoftwareBufferPixels, m_pRTRenderPixels, m_Width * m_Height);
+
+				if (m_pSceneGraph->ShouldRenderRTFrame())
+				{
+					
+					m_pSceneGraph->ConfirmRTRender();
+				}
 			}
+			else
+			{
+				for (auto pObject : m_pSceneGraph->GetCurrentSceneObjects())
+				{
+					m_pSceneGraph->GetCamera()->MakeScreenSpace(pObject);
+					pObject->Rasterize(m_pSoftwareBuffer, m_pSoftwareBufferPixels, m_pDepthBuffer, m_Width, m_Height);
+				}
+			}
+
 
 			// We're done writing to the surface, so we can unlock it
 			SDL_UnlockSurface(m_pSoftwareBuffer);
@@ -208,6 +222,8 @@ void Renderer::SetupSoftwarePipeline() noexcept
 	// Setup pixel and depth buffers
 	m_pSoftwareBuffer = SDL_CreateRGBSurface(0, m_Width, m_Height, 32, 0, 0, 0, 0);
 	m_pSoftwareBufferPixels = static_cast<uint32_t*>(m_pSoftwareBuffer->pixels);
+	m_pRTRender = SDL_CreateRGBSurface(0, m_Width, m_Height, 32, 0, 0, 0, 0);
+	m_pRTRenderPixels = static_cast<uint32_t*>(m_pSoftwareBuffer->pixels);
 	m_pDepthBuffer = new float[m_Width * m_Height];
 }
 
