@@ -1,7 +1,5 @@
 #include "pch.h"
 #include "Debugging/Logger.hpp"
-
-
 #include "Helpers/GeneralHelpers.hpp"
 #include "Helpers/magic_enum.hpp"
 

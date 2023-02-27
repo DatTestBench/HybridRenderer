@@ -70,23 +70,15 @@
     <ClCompile Include="ImGui\imgui_widgets.cpp">
       <Filter>Math</Filter>
     </ClCompile>
+    <ClCompile Include="Debugging\Logger.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Helpers\GeometryHelpers.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Geometry\Mesh.hpp" />
-    <ClInclude Include="Helpers\EMath.h" />
-    <ClInclude Include="Helpers\EMathUtilities.h" />
-    <ClInclude Include="Helpers\EMatrix.h" />
-    <ClInclude Include="Helpers\EMatrix2.h" />
-    <ClInclude Include="Helpers\EMatrix3.h" />
-    <ClInclude Include="Helpers\EMatrix4.h" />
-    <ClInclude Include="Helpers\EPoint.h" />
-    <ClInclude Include="Helpers\EPoint2.h" />
-    <ClInclude Include="Helpers\EPoint3.h" />
-    <ClInclude Include="Helpers\EPoint4.h" />
-    <ClInclude Include="Helpers\EVector.h" />
-    <ClInclude Include="Helpers\EVector2.h" />
-    <ClInclude Include="Helpers\EVector3.h" />
-    <ClInclude Include="Helpers\EVector4.h" />
     <ClInclude Include="Helpers\MeshParser.hpp" />
     <ClInclude Include="Helpers\RGBColor.hpp" />
     <ClInclude Include="Helpers\Timer.hpp" />
@@ -113,5 +105,9 @@
     <ClInclude Include="ImGui\imstb_rectpack.h" />
     <ClInclude Include="ImGui\imstb_textedit.h" />
     <ClInclude Include="ImGui\imstb_truetype.h" />
+    <ClInclude Include="Debugging\Logger.hpp" />
+    <ClInclude Include="Helpers\Concepts.hpp" />
+    <ClInclude Include="Helpers\GeometryHelpers.hpp" />
+    <ClInclude Include="Helpers\magic_enum.hpp" />
   </ItemGroup>
 </Project>
