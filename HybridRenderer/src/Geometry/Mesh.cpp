@@ -131,8 +131,6 @@ void Mesh::RasterizeTriangle(const VertexOutput& v0, const VertexOutput& v1, con
                 case SoftwareRenderType::NormalMapped:
                     finalColor = glm::abs(MaterialManager::GetInstance()->GetMaterial(m_MaterialName)->GetMappedNormal(interpolatedAttributes));
                     break;
-                default:
-                    break;
                 }
 
                 backBufferPixels[c + (r * width)] = SDL_MapRGB(backBuffer->format,

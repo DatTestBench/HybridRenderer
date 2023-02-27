@@ -70,7 +70,7 @@ public:
     static void ChangeCameraResolution(uint32_t width, uint32_t height);
 
     //Workers
-    void Update(float dT);
+    void Update(float dT) const;
     void RenderDebugUI() noexcept;
     void SetTimer(Timer* pTimer) noexcept { m_pTimer = pTimer; }
     void ConfirmRenderSystemUpdate() noexcept { m_ShouldUpdateRenderSystem = false; }

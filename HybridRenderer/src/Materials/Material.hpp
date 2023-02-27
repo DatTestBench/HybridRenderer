@@ -15,14 +15,14 @@
 //#include "Scene/SceneGraph.hpp"
 
 #define D3DLOAD_TECH(effect, tech, name) \
-    tech = effect->GetTechniqueByName(name); \
-    if (!tech->IsValid()) \
-        LOG(LEVEL_ERROR, "Technique " << name << " not found")
+    tech = (effect)->GetTechniqueByName(name); \
+    if (!(tech)->IsValid()) \
+        LOG(LEVEL_ERROR, "Technique " << (name) << " not found")
 
 #define D3DLOAD_VAR(effect, var, name, varType) \
-    var = effect->GetVariableByName(name)->varType(); \
-    if (!var->IsValid()) \
-        LOG(LEVEL_ERROR, "Variable " << name << " not found")
+    var = (effect)->GetVariableByName(name)->varType(); \
+    if (!(var)->IsValid()) \
+        LOG(LEVEL_ERROR, "Variable " << (name) << " not found")
 
 class Material
 {

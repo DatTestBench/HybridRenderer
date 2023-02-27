@@ -49,7 +49,7 @@ void SceneGraph::ChangeCameraResolution(const uint32_t width, const uint32_t hei
 #pragma endregion
 
 #pragma region Workers
-void SceneGraph::Update(const float dT)
+void SceneGraph::Update(const float dT) const
 {
     float rotationSpeed;
     if (m_AreObjectsRotating)
@@ -61,7 +61,7 @@ void SceneGraph::Update(const float dT)
         rotationSpeed = 0.f;
     }
 
-    for (auto pMesh : GetCurrentSceneObjects())
+    for (const auto pMesh : GetCurrentSceneObjects())
     {
         pMesh->Update(dT, rotationSpeed);
     }
@@ -238,6 +238,5 @@ void SceneGraph::RenderHardwareDebugUI() noexcept
         ImGui::EndCombo();
     }
 }
-
 
 #pragma endregion

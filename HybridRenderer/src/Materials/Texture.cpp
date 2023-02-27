@@ -33,7 +33,7 @@ RGBColor Texture::Sample(const glm::vec2& uv) const
 
 	SDL_GetRGB(GetPixel(m_pSurface, static_cast<uint32_t>(remappedUV.x), static_cast<uint32_t>(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b);
 
-	return RGBColor(color.r / 255.f, color.g / 255.f, color.b / 255.f);
+	return { color.r / 255.f, color.g / 255.f, color.b / 255.f };
 }
 glm::vec4 Texture::Sample4(const glm::vec2& uv) const
 {
@@ -45,7 +45,7 @@ glm::vec4 Texture::Sample4(const glm::vec2& uv) const
 
 	SDL_GetRGBA(GetPixel(m_pSurface, static_cast<uint32_t>(remappedUV.x), static_cast<uint32_t>(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b, &color.a);
 
-	return glm::vec4(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
+	return { color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f };
 }
 
 glm::vec3 Texture::SampleV(const glm::vec2& uv) const
@@ -58,7 +58,7 @@ glm::vec3 Texture::SampleV(const glm::vec2& uv) const
 
 	SDL_GetRGB(GetPixel(m_pSurface, static_cast<int32_t>(remappedUV.x), static_cast<int32_t>(remappedUV.y)), m_pSurface->format, &color.r, &color.g, &color.b);
 
-	return glm::vec3(color.r, color.g, color.b);
+	return { color.r, color.g, color.b };
 }
 float Texture::SampleF(const glm::vec2& uv, const int32_t component) const
 {
@@ -87,13 +87,11 @@ uint32_t Texture::GetPixel(SDL_Surface* surface, const uint32_t x, const uint32_
 		return *p;
 	case 2:
 		return *reinterpret_cast<uint16_t*>(p);
-		break;
 	case 3:
 		if constexpr (SDL_BYTEORDER == SDL_BIG_ENDIAN)
 			return p[0] << 16 | p[1] << 8 | p[2];
 		else
 			return p[0] | p[1] << 8 | p[2] << 16;
-		break;
 	case 4:
 		return *reinterpret_cast<uint32_t*>(p);
 	default:

@@ -44,8 +44,6 @@ Camera::Camera(const glm::vec3& origin, const uint32_t windowWidth, const uint32
             {0, 0, -(m_NearPlane * m_FarPlane) / (m_FarPlane - m_NearPlane), 0}
         };
         break;
-    default:
-        break;
     }
 }
 
@@ -236,12 +234,9 @@ void Camera::MakeScreenSpace(Mesh* pMesh) const
     const auto meshWorld = pMesh->GetWorld();
     const auto meshWorld3 = glm::mat3(meshWorld);
     const auto viewProjWorldMatrix = m_ProjectionMatrix * m_CameraMatrix * meshWorld;
-
-    
     
     for (const auto& v : pMesh->GetVertices())
     {
-        
         VertexOutput sSV{};
         sSV.uv = v.uv;
         sSV.worldPos = meshWorld * glm::vec4(v.pos, 1.f);
@@ -310,8 +305,6 @@ void Camera::ToggleRenderSystem(const RenderSystem& renderSystem)
             {0, 0, m_FarPlane / (m_FarPlane - m_NearPlane), 1},
             {0, 0, -(m_NearPlane * m_FarPlane) / (m_FarPlane - m_NearPlane), 0}
         };
-        break;
-    default:
         break;
     }
 }
